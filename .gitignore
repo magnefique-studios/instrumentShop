@@ -1,0 +1,32 @@
+### Maven template
+.env
+postgres-data
+target/
+build/
+release.properties
+buildNumber.properties
+target/maven-archiver/pom.properties
+### Java template
+*.prefs
+*.class
+.idea
+**.niml
+bin/
+# Package Files #
+
+*.war
+*.ear
+
+# Vagrant 
+.vagrant/
+# Mac
+.DS_Store
+
+#retry
+*.retry
+
+#logs
+*.log
+
+#vscode
+
