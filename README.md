@@ -1,11 +1,11 @@
 
 ## Java Instrumentation Shop 
 
-# Learn how Splunk APM reduces Repair Times for development teams with Custom Tags.
+# Learn how Datadog APM helps Software Engineers and Dev Ops Engineers crush bugs.
 
 ## Hands on Workshop Scenario
 
-Here at Splunk Instruments, our business is expanding!
+Here at the Instrument Shop, our business is expanding!
 
 We have recently added 3 new locations: Two locations in the USA (Colorado and Chicago) and one international location in Sri Lanka. 
 
@@ -13,9 +13,9 @@ Our technical staff has already on-boarded the data from these new locations and
 
 We now have a total of 6 locations !
 
-# Splunk Observability Cloud 
+# DataDog access
 
-You must have the ability to send traces to Splunk Observability Cloud. If you do not have an account already, please start a trial here: https://www.splunk.com/en_us/download/apm-free-trial.html
+You must have the ability to send traces to Datadog. If you do not have an account already, please start a trial here: https://www.datadoghq.com/
 
 
 # Environment Setup Linux 
@@ -122,17 +122,17 @@ nano .env
 
 #### Note: NO spaces in <your_name>
 #### Note: The shop_user provides us an Environment Tag.
-#### Note: To get your access token, go to your Splunk O11y UI -> Settings ->Access Tokens. 
-#### Note: It is assumed in this workshop that you can send traces to the org and token you are using.
+#### Note: To get your access token, go to your DataDog UI, hover over your name at the bottom, click on Organization Settings and API Keys.
+#### Note: It is assumed in this workshop that you can send traces, logs and metrics to the organization you are using.
 
 - Set the following values:
 
 ```
 SHOP_USER=<your_name>
 
-SPLUNK_ACCESS_TOKEN=<your_token>
+DD_API_KEY=<your_api_key>
 
-SPLUNK_REALM=<your_realm>
+DD_SITE=<datadog site, for us1 you can leave blank>
 ```
 
 - Save in nano with `[CTRL]-o` **[ENTER]**
@@ -141,7 +141,7 @@ SPLUNK_REALM=<your_realm>
 	
 # Build and Deploy Application
 
-Let's get started by building and deploying our Application, the Splunk Instrument Shop. Run the commands below to begin and start reading ahead as your traces are coming up !
+Let's get started by building and deploying our Application, the Instrument Shop. Run the commands below to begin and start reading ahead as your traces are coming up !
 
 - Build the app
 ```
