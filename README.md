@@ -1,5 +1,5 @@
 
-## Java Instrumentation Shop 
+## Java Instrument Shop 
 
 # Learn how Datadog APM helps Software Engineers and Dev Ops Engineers crush bugs.
 
