@@ -3,9 +3,11 @@ package com.shabushabu.javashop.instruments.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.shabushabu.javashop.instruments.model.FilteredInstrument;
 import com.shabushabu.javashop.instruments.model.Instrument;
 import com.shabushabu.javashop.instruments.repositories.InstrumentRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
@@ -36,9 +38,22 @@ public class InstrumentService {
         
     	s_logger.info("Entering InstrumentService::getInstruments: Location= " + location);
     	
+    	Object obj = null;
+    	
+    	FilteredInstrument fInstrument = new FilteredInstrument();
+    	
+    	try {
+    		if (!fInstrument.filterInstruments(location)) {
+    			return new ArrayList<Instrument>();
+    		}
+    		
+    	}catch(Exception e) {
+    		s_logger.error("Locale Filter Failed on " + location);
+    	}
+    	
     	if (location.equalsIgnoreCase("Chicago")) {
     	
-    		Object obj = instrumentRepo.findInstruments() ;
+    		obj = instrumentRepo.findInstruments() ;
     		
     		if ( null == obj || !( obj instanceof List<?>) ) {
     			return null;

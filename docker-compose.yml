@@ -8,7 +8,7 @@ services:
     build: datadog
     pid: host
     environment:
-     - DD_ENV=dd_xApm_Instrumentation_Shop
+     - DD_ENV=${SHOP_USER}_xApm_Instrumentation_Shop
      - DD_API_KEY=${DD_API_KEY}
      - DD_SITE=${DD_SITE}
      - DD_LOGS_ENABLED=true
@@ -86,7 +86,7 @@ services:
       timeout: 2s
     environment:
       - USERNAME=${SHOP_USER}
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      - DD_INSTRUMENT_SERVICE_WITH_APM=true
   stock:
     image: shabushabu/javashop.stock:latest
     labels:

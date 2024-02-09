@@ -1,10 +1,10 @@
-FROM openjdk:21
+FROM openjdk:15
 ADD target/javashop.products-latest.jar app.jar
 ADD products.yml app-config.yml
 EXPOSE 8020
 
-#COPY dd-java-agent.jar  .
-ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
+COPY dd-java-agent.jar  .
+# ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
 
 #ENTRYPOINT java -Ddd.instrumentation.telemetry.enabled=false  -Dotel.traces.sampler=rules -Dotel.traces.sampler.arg=drop=healthcheck -Dotel.resource.attributes=service.name=products,deployment.environment=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar server app-config.yml
 
