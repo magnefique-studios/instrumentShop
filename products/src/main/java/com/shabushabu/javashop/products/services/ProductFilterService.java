@@ -18,7 +18,7 @@ public class ProductFilterService {
 	    
 	    public List<Product> filterAllProducts(String location, ProductService productService) {
 	    	s_logger.info("Enteriing ProductResource::getAllProducts() location = " + location);
-	    	// STEP X: All we know right now is somewhere in this function, latency was introduced.
+	    	//  All we know right now is somewhere in this function, latency was introduced.
 	  
 	    	myCoolFunction1(location);
 	    	myCoolFunction2(location);
@@ -563,20 +563,19 @@ public class ProductFilterService {
 			return 0;
 		}
 		 
-		 
 		 private void myCoolFunction234234234(int myInt) {
 		    	// Generate a FAST sleep of 0 time !
-		    	Random sleepy = new Random();
-		    	try{
+		    Random sleepy = new Random();
+		    try{
 		       if (999==myInt) 
 		          Thread.sleep(
 		                 sleepy.nextInt(5000 - 3000)
 		                 + 3000);
-		        } catch (Exception e){
+		    } catch (Exception e){
 		       
-		        }
+		    }
 		    		
-		        }
+		}
 		 
 	    private int locationLookup16(String location) {
 	    	s_logger.info("Location Index is ... ");

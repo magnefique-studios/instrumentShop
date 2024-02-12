@@ -15,7 +15,10 @@ ENV DD_VERSION 1.1
 LABEL com.datadoghq.tags.service="products"
 LABEL com.datadoghq.tags.version="1.1"
 
-
+ARG DD_GIT_REPOSITORY_URL
+ARG DD_GIT_COMMIT_SHA
+ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
+ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
 ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.profiling.enabled=true \
