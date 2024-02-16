@@ -8,8 +8,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PostMapping;
 
 import com.shabushabu.javashop.shop.Exercises;
 import com.shabushabu.javashop.shop.PropertiesUpdater;
@@ -19,24 +17,17 @@ import com.shabushabu.javashop.shop.services.ProductService;
 import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 import io.opentelemetry.instrumentation.annotations.WithSpan;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
-import java.util.ArrayList;
+
 import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
 
 import javax.naming.NoPermissionException;
 
 @Controller
 public class HomeController {
 	
-	public static long s_coloradoLatency = 0;
-	public static long s_utahLatency = 0 ;
+	public static long s_coloradoLatency;
+	public static long s_utahLatency;
 
     @Autowired
     private ProductService productService;

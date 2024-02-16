@@ -17,10 +17,10 @@ public class ShopTest {
    public void test_25() throws Exception
    {
    //    assertEquals(25, 25);
-	   if ( 1 == 0 ) {
+	  /*  if ( 1 == 0 ) {
 		   throw new Exception("test_25_failed");
 	   }
-	  
+	  */
    }
 	
    // @Test

@@ -9,8 +9,6 @@ import com.shabushabu.javashop.shop.model.Instrument;
 import com.shabushabu.javashop.shop.repo.StockRepo;
 import com.shabushabu.javashop.shop.repo.InstrumentRepo;
 import com.shabushabu.javashop.shop.repo.ProductRepo;
-import com.shabushabu.javashop.shop.services.dto.ProductDTO;
-import com.shabushabu.javashop.shop.services.dto.StockDTO;
 import com.shabushabu.javashop.shop.services.dto.InstrumentDTO;
 import com.shabushabu.javashop.shop.exceptions.InvalidLocaleException;
 
@@ -23,10 +21,12 @@ import java.util.stream.Collectors;
 @Service
 public class InstrumentService {
 
+    @SuppressWarnings("unused")
     @Autowired
     private StockRepo stockRepo;
 
-   @Autowired
+   @SuppressWarnings("unused")
+@Autowired
    private ProductRepo productRepo;
     
     @Autowired

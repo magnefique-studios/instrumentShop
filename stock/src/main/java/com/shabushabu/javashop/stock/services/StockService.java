@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
+import javax.validation.constraints.NotNull;
+
 @Service
 public class StockService {
 
@@ -26,9 +28,11 @@ public class StockService {
         return StreamSupport.stream(stockRepository.findAll().spliterator(), false)
                 .collect(Collectors.toList());
     }
- 
+ /* 
     public Stock getStock(String productId) throws StockNotFoundException {
         return stockRepository.findById(productId)
                 .orElseThrow(() -> new StockNotFoundException("Stock not found with productId: " + productId));
     }
+ */
+
 }

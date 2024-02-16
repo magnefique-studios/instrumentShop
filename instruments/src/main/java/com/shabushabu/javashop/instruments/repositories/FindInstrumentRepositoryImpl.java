@@ -11,20 +11,16 @@ import com.shabushabu.javashop.instruments.resources.InstrumentResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
-import java.util.List;
 import java.util.Objects;
 
 public class FindInstrumentRepositoryImpl implements FindInstrumentRepository {
 
 	private static final Logger LOGGER = LoggerFactory.getLogger(InstrumentResource.class);
 	
-	private static Object s_bigQueryResult = null;
 	
     @PersistenceContext
     private EntityManager entityManager;
 
-    @SuppressWarnings("unchecked")
 	@Override
     public Object findInstruments() {
     	LOGGER.info("findInstruments Called (All)");

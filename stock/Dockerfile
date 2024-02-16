@@ -9,7 +9,12 @@ ENV DD_SERVICE stock
 ENV DD_VERSION 1.1
 
 LABEL com.datadoghq.tags.service="stock"
-LABEL com.datadoghq.tags.version="1.1"
+LABEL com.datadoghq.tags.version="1.2"
+
+ARG DD_GIT_REPOSITORY_URL
+ARG DD_GIT_COMMIT_SHA
+ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
+ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
 
 COPY dd-java-agent.jar  .
@@ -19,6 +24,7 @@ ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -XX:FlightRecorderOptions=stackdepth=256 \
  # -Ddd.agent.host=${DD_AGENT_HOST} \
  #  -Ddd.agent.host=192.168.1.35 \ 
+  -Ddd.data.streams.enabled=true \
   -Ddd.agent.host=datadog \
   -Ddd.logs.injection=true \
   -Ddd.trace.sample.rate=1 \

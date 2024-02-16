@@ -15,6 +15,7 @@ public class GenerateTraffic {
 	private static final String TESTER_FIRST_RUN = "FirstRun";
 
 	
+	@SuppressWarnings("unused")
 	public static void main(String[] args) {
 
 

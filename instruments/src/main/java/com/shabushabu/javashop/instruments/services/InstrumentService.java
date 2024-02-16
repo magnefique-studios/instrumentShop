@@ -28,12 +28,6 @@ public class InstrumentService {
         this.instrumentRepo = instrumentRepo;
     }
 
-  /*  public List<Instrument> getInstruments() {
-        return StreamSupport.stream(instrumentRepo.findAll().spliterator(), false)
-                .collect(Collectors.toList());
-    }
-*/
-    @SuppressWarnings("unchecked")
 	public List<Instrument> getInstruments(String location) {
         
     	s_logger.info("Entering InstrumentService::getInstruments: Location= " + location);

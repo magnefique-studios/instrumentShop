@@ -8,7 +8,6 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.Properties;
 
 import com.shabushabu.javashop.shop.controllers.HomeController;
@@ -18,7 +17,6 @@ public class Exercises {
 	private static final String SHOP_ENV_FILE = "/container/shop/data/.env";
 	public static final String TRACES_SENT = "TRACES_SENT";
 	private static final int MIN_TRACES_EXPECTED = 180;
-	public static boolean exceptionThrownForUser = false;
 	public static final int NUM_EXERCISES = 15;
 	
 	private Properties m_props;
@@ -54,8 +52,6 @@ public class Exercises {
             throw e;
         }
         finally {
-            // Calling finalize() of Object class
-            super.finalize();
         }
     }
 	

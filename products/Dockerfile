@@ -13,7 +13,7 @@ ENV DD_SERVICE products
 ENV DD_VERSION 1.1
 
 LABEL com.datadoghq.tags.service="products"
-LABEL com.datadoghq.tags.version="1.1"
+LABEL com.datadoghq.tags.version="1.2"
 
 ARG DD_GIT_REPOSITORY_URL
 ARG DD_GIT_COMMIT_SHA
@@ -27,6 +27,7 @@ ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.agent.host=datadog \
 #  -Ddd.agent.host=192.168.1.35 \
 #  -Ddd.agent.host=${DD_AGENT_HOST} \
+  -Ddd.data.streams.enabled=true \
   -Ddd.logs.injection=true \
   -Ddd.trace.sample.rate=1 \
   -Ddd.appsec.enabled=true \

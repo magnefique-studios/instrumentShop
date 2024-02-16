@@ -1,12 +1,5 @@
 package com.shabushabu.javashop.instruments.model;
 
-
-
-
-import java.util.List;
-
-import javax.persistence.EntityManager;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,7 +19,7 @@ public boolean filterInstruments( String locale) throws InvalidLocaleException {
 	
 	boolean result = true;
 	
-	if (locale.equalsIgnoreCase("Oregon")) {
+	if ("Oregon".equalsIgnoreCase(locale)) {
 	
 		if (s_Localedisabled) {
 				

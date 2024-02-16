@@ -256,7 +256,8 @@ public class ProductFilterService {
 			
 		}
 	    
-	    private int lookupLocation19(String location) {
+	    @SuppressWarnings("unused")
+		private int lookupLocation19(String location) {
 	    	
 	    	int sleepy = lookupLocation1(location);
 	    	// Generate a FAST sleep of 0 time !
@@ -294,7 +295,8 @@ public class ProductFilterService {
 			return sleepy;
 			
 		}
-	    private int lookupLocation4(String location) {
+	    @SuppressWarnings("unused")
+		private int lookupLocation4(String location) {
 	    	 // Generate a FAST sleep of 0 time !
 	        int sleepy = 2;
 	        if (location.equalsIgnoreCase("California")) {
@@ -442,8 +444,10 @@ public class ProductFilterService {
 	    
 	    private void myCoolFunction() {
 	    	s_logger.info("Location Index is ... ");
+			@SuppressWarnings("unused")
 			int sleepy1 =3;
-	    	  Random random = new Random();
+	    	  @SuppressWarnings("unused")
+			Random random = new Random();
 
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
@@ -453,7 +457,8 @@ public class ProductFilterService {
 	      	  
 	        }
 	      }
-	    private void myCoolFunction33() {
+	    @SuppressWarnings("unused")
+		private void myCoolFunction33() {
 	        // Generate a FAST sleep of 0 time !
 	    	s_logger.info("Location Index is ... ");
 			int sleepy1 =3;
@@ -466,7 +471,8 @@ public class ProductFilterService {
 	      	  
 	        }
 	      }
-	    private void myCoolFunction34(String location) {
+	    @SuppressWarnings("unused")
+		private void myCoolFunction34(String location) {
 	    	s_logger.info("Location Index is ... ");
 			int sleepy1 =3;
 	    	  Random random = new Random();
@@ -482,7 +488,8 @@ public class ProductFilterService {
 	    
 	    private int locationLookup2(String location) {
 	    	System.out.println("Location Index is ... ");
-	    	int sleepy1 =3;
+	    	@SuppressWarnings("unused")
+			int sleepy1 =3;
 	    	 // Generate a FAST sleep of 0 time !
 	        int sleepy = 1;
 	        try{
@@ -493,7 +500,22 @@ public class ProductFilterService {
 			return 0;
 		}
 	    
-	    private int locationLookup21(String location) {
+	    @SuppressWarnings("unused")
+		private int locationLookup21(String location) {
+	    	s_logger.info("Location Index is ... ");
+	    	@SuppressWarnings("unused")
+			int sleepy1 =3;
+	    	 // Generate a FAST sleep of 0 time !
+	        int sleepy = 1;
+	        try{
+	        Thread.sleep(sleepy);
+	        } catch (Exception e){
+	      	  
+	        }
+			return 0;
+		}
+	    @SuppressWarnings("unused")
+		private int locationLookup22(String location) {
 	    	s_logger.info("Location Index is ... ");
 	    	int sleepy1 =3;
 	    	 // Generate a FAST sleep of 0 time !
@@ -505,19 +527,8 @@ public class ProductFilterService {
 	        }
 			return 0;
 		}
-	    private int locationLookup22(String location) {
-	    	s_logger.info("Location Index is ... ");
-	    	int sleepy1 =3;
-	    	 // Generate a FAST sleep of 0 time !
-	        int sleepy = 1;
-	        try{
-	        Thread.sleep(sleepy);
-	        } catch (Exception e){
-	      	  
-	        }
-			return 0;
-		}
-	    private int locationLookup23(String location) {
+	    @SuppressWarnings("unused")
+		private int locationLookup23(String location) {
 	    	s_logger.info("Location Index is ... ");
 			int sleepy1 =3;
 	    	 // Generate a FAST sleep of 0 time !
@@ -530,6 +541,7 @@ public class ProductFilterService {
 			return 0;
 		}
 
+		@SuppressWarnings("unused")
 		private int locationLookup11(String location) { 
 			s_logger.info("Location Index is ... ");
 			int sleepy = 1;
@@ -547,7 +559,8 @@ public class ProductFilterService {
 	    	return sleepy;
 	      }
 		
-		 private int locationLookup15(String location) {
+		 @SuppressWarnings("unused")
+		private int locationLookup15(String location) {
 			 s_logger.info("Location Index is ... ");
 			
 	    	 // Generate a FAST sleep of 0 time !
@@ -569,15 +582,16 @@ public class ProductFilterService {
 		    try{
 		       if (999==myInt) 
 		          Thread.sleep(
-		                 sleepy.nextInt(5000 - 3000)
-		                 + 3000);
+		                 sleepy.nextInt(500 - 300)
+		                 + 966);
 		    } catch (Exception e){
 		       
 		    }
 		    		
 		}
 		 
-	    private int locationLookup16(String location) {
+	    @SuppressWarnings("unused")
+		private int locationLookup16(String location) {
 	    	s_logger.info("Location Index is ... ");
 			
 	    	 // Generate a FAST sleep of 0 time !
@@ -592,7 +606,8 @@ public class ProductFilterService {
 	        }
 			return 0;
 		}
-	    private void myCoolFunction3333() {
+	    @SuppressWarnings("unused")
+		private void myCoolFunction3333() {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
@@ -604,7 +619,8 @@ public class ProductFilterService {
 	      	  
 	        }
 	      }
-	    private void myCoolFunction433434() {
+	    @SuppressWarnings("unused")
+		private void myCoolFunction433434() {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
