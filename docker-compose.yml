@@ -87,6 +87,23 @@ services:
     environment:
       - USERNAME=${SHOP_USER}
       - DD_INSTRUMENT_SERVICE_WITH_APM=true
+  conductors:
+    image: shabushabu/javashop.conductors:latest
+    labels:
+      com.datadoghq.ad.logs: '[{"source": "conductors", "service": "conductors"}]'
+    build:
+      ./conductors
+    ports:
+      - "8050:8050"
+    healthcheck:
+      test: curl -sS http://localhost:8050/conductors/healthcheck | grep -c 200 > /dev/null
+      interval: 2s
+      retries: 5
+      start_period: 5s
+      timeout: 2s
+    environment:
+      - USERNAME=${SHOP_USER}
+      - DD_INSTRUMENT_SERVICE_WITH_APM=true
   stock:
     image: shabushabu/javashop.stock:latest
     labels:

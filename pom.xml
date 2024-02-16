@@ -11,12 +11,14 @@
   <url>http://maven.apache.org</url>
   
   <modules>
-    <module>test</module>
     <module>shop</module>
     <module>stock</module>
     <module>products</module> 
     <module>instruments</module>
+    <module>conductors</module>
     <module>annotator</module>
+    <module>test</module>
+
 </modules>
 
   <dependencies>

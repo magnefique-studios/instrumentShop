@@ -6,10 +6,10 @@ EXPOSE 8030
 
 
 ENV DD_SERVICE stock
-ENV DD_VERSION 1.1
+ENV DD_VERSION 1.4
 
 LABEL com.datadoghq.tags.service="stock"
-LABEL com.datadoghq.tags.version="1.2"
+LABEL com.datadoghq.tags.version="1.4"
 
 ARG DD_GIT_REPOSITORY_URL
 ARG DD_GIT_COMMIT_SHA

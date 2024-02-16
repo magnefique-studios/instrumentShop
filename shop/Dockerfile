@@ -7,10 +7,10 @@ EXPOSE 8010
 ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
 
 ENV DD_SERVICE shop
-ENV DD_VERSION 1.1
+ENV DD_VERSION 1.4
 
 LABEL com.datadoghq.tags.service="shop"
-LABEL com.datadoghq.tags.version="1.2"
+LABEL com.datadoghq.tags.version="1.4"
 
 ARG DD_GIT_REPOSITORY_URL
 ARG DD_GIT_COMMIT_SHA

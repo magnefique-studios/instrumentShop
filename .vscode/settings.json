@@ -7,5 +7,5 @@
         "shop",
         "stock"
     ],
-    "datadog.ust.environment.setup.focusedName": "new_prod_xapm_instrumentation_shop"
+    "datadog.ust.environment.setup.focusedName": "desjardins_xapm_instrumentation_shop"
 }
