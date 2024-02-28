@@ -23,7 +23,7 @@ ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
   -Ddd.agent.host=datadog  \
-  # -Ddd.agent.host=192.168.1.39 \
+  #-Ddd.agent.host=192.168.1.32 \
   -Ddd.logs.injection=true \
   -Ddd.dynamic.instrumentation.enabled=true \
   -Ddd.trace.sample.rate=1 \

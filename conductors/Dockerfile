@@ -28,5 +28,20 @@ ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL}
 ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
 
-ENTRYPOINT java  -jar app.jar server app-config.yml
+#ENTRYPOINT java  -jar app.jar server app-config.yml
+
+  ENTRYPOINT java  \
+  -Ddd.profiling.enabled=true \
+  -XX:FlightRecorderOptions=stackdepth=256 \
+  -Ddd.dynamic.instrumentation.enabled=true \
+  -Ddd.agent.host=datadog \
+#  -Ddd.agent.host=192.168.1.35 \
+#  -Ddd.agent.host=${DD_AGENT_HOST} \
+  -Ddd.data.streams.enabled=true \
+  -Ddd.logs.injection=true \
+  -Ddd.trace.sample.rate=1 \
+  -Ddd.appsec.enabled=true \
+  -Ddd.iast.enabled=true  \
+  -Ddd.service=conductors \
+  -Ddd.env=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar server app-config.yml
 
