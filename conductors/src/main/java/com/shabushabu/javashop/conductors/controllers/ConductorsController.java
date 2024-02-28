@@ -1,5 +1,4 @@
 
-
 package com.shabushabu.javashop.conductors.controllers;
 
 import org.springframework.http.HttpStatus;
@@ -11,6 +10,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.shabushabu.javashop.conductors.services.ProductFilterService;
 import com.shabushabu.javashop.conductors.services.ConductorsService;
+import com.shabushabu.javashop.conductors.exceptions.InvalidLocaleException;
+import com.shabushabu.javashop.conductors.model.FilteredProducts;
 import com.shabushabu.javashop.conductors.model.Product;
 import java.util.List;
 
@@ -18,15 +19,20 @@ import java.util.List;
 public class ConductorsController {
 
     @GetMapping("/conductors")
-    public List<Product> getProductsByLocation(@RequestParam String location) {
+    public List<Product> getProductsByLocation(@RequestParam String location) throws InvalidLocaleException {
         // Mock response for demonstration
     	
-    	location = "California";
+    	location = "Oregon";
     	
     	ConductorsService service = new ConductorsService();
     	
     	ProductFilterService serviceFilter = new ProductFilterService();
-    	
+        try {
+            FilteredProducts products = new FilteredProducts();
+            products.filterProducts(location);
+        }catch(Exception e) {
+
+        }
         return serviceFilter.filterAllProducts(location, service);
     }
     
