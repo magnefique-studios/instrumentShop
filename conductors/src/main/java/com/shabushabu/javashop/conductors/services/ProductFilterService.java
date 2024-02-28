@@ -17,9 +17,9 @@ public class ProductFilterService {
 	    private static Logger s_logger = LogManager.getLogger(ProductFilterService.class);
 	    
 	    public List<Product> filterAllProducts(String location, ConductorsService productService) {
-	    	s_logger.info("Enteriing ProductResource::getAllProducts() location = " + location);
+// s_logger.info("Enteriing ProductResource::getAllProducts() location = " + location);
 	    	//  All we know right now is somewhere in this function, latency was introduced.
-	  
+	        /* 
 	    	myCoolFunction1(location);
 	    	myCoolFunction2(location);
 	    	myCoolFunction10(location);
@@ -220,7 +220,7 @@ public class ProductFilterService {
 	    	myCoolFunction();
 	    	
 	    	myCoolFunction();	  
-				
+		*/		
 	        return productService.getAllProducts();
 	          
 	    }

@@ -31,11 +31,11 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 #ENTRYPOINT java  -jar app.jar server app-config.yml
 
   ENTRYPOINT java  \
-  -Ddd.profiling.enabled=true \
+  -Ddd.profiling.enabled=false \
   -XX:FlightRecorderOptions=stackdepth=256 \
   -Ddd.dynamic.instrumentation.enabled=true \
   -Ddd.agent.host=datadog \
-#  -Ddd.agent.host=192.168.1.35 \
+  #-Ddd.agent.host=192.168.1.32 \
 #  -Ddd.agent.host=${DD_AGENT_HOST} \
   -Ddd.data.streams.enabled=true \
   -Ddd.logs.injection=true \

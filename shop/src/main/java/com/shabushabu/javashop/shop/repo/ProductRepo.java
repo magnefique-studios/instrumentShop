@@ -40,7 +40,7 @@ public class ProductRepo {
 
         if (bConductorsEnabled && "Utah".equalsIgnoreCase(location)) {
                 productCatalogueResponse =
-                        restTemplate.exchange(conductorsUri + "/products?" + "location=" + location,
+                        restTemplate.exchange(conductorsUri + "/conductors?" + "location=" + location,
                                 HttpMethod.GET, null, new ParameterizedTypeReference<List<ProductDTO>>() {
                                 });
         } else {

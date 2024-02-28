@@ -6,6 +6,8 @@ ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
 
 #COPY dd-java-agent.jar  .
 
+COPY latest-java-tracer .
+
 ENV DD_SERVICE instruments
 ENV DD_VERSION 1.4
 
@@ -20,7 +22,7 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
 ENV JAVA_OPTS="-Xms2048M -Xmx2048M"
 
-ENTRYPOINT java $JAVA_OPTS  -javaagent:dd-java-agent.jar \
+ENTRYPOINT java $JAVA_OPTS  -javaagent:latest-java-tracer  \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
   -Ddd.agent.host=datadog  \

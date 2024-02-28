@@ -1,10 +1,12 @@
-FROM openjdk:8
+FROM openjdk:11
 #FROM openjdk:17-jdk-slim
 
 ADD target/javashop.shop-latest.jar ./app.jar
 EXPOSE 8010
 
-ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
+#ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
+
+COPY latest-java-tracer .
 
 ENV DD_SERVICE shop
 ENV DD_VERSION 1.4
@@ -19,7 +21,7 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
 #ADD https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar .
 
-ENTRYPOINT java -javaagent:dd-java-agent.jar \
+ENTRYPOINT java -javaagent:latest-java-tracer \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
   -Ddd.agent.host=datadog  \

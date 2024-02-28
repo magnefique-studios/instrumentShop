@@ -4,8 +4,8 @@ ADD products.yml app-config.yml
 EXPOSE 8020
 
 #COPY dd-java-agent.jar  .
-ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
-
+#ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
+COPY latest-java-tracer .
 #ENTRYPOINT java -Ddd.instrumentation.telemetry.enabled=false  -Dotel.traces.sampler=rules -Dotel.traces.sampler.arg=drop=healthcheck -Dotel.resource.attributes=service.name=products,deployment.environment=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar server app-config.yml
 
 
@@ -20,7 +20,7 @@ ARG DD_GIT_COMMIT_SHA
 ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
 ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
-ENTRYPOINT java -javaagent:dd-java-agent.jar \
+ENTRYPOINT java -javaagent:latest-java-tracer \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
   -Ddd.dynamic.instrumentation.enabled=true \

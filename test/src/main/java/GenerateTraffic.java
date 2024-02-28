@@ -17,8 +17,11 @@ public class GenerateTraffic {
 	
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-
-
+		try {
+		 Thread.sleep(3000);
+		}catch(Exception e ){
+		}
+		 
 		 Properties properties = new Properties();
 		 try (FileInputStream inputStream = new FileInputStream(TESTER_PROPS_FILE)) {
 			 properties.load(inputStream);
