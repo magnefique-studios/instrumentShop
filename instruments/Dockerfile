@@ -2,7 +2,7 @@ FROM openjdk:17
 ADD target/javashop.instruments-latest.jar app.jar
 EXPOSE 8040
 
-ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
+ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
 
 ENV DD_SERVICE instruments
 ENV DD_VERSION 1.4
@@ -22,11 +22,11 @@ ENV JAVA_OPTS="-Xms2048M -Xmx2048M"
 ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
-  -Ddd.agent.host=${DD_AGENT_HOST} \
-  -Ddd.logs.injection=true \
-  -Ddd.trace.sample.rate=1 \
-  -Ddd.appsec.enabled=true \
-  -Ddd.iast.enabled=true  \
+  -Ddd.agent.host=datadog-agent \
   -Ddd.data.streams.enabled=true \
-  -Ddd.service=instruments \ 	
+ # -Ddd.logs.injection=true \
+  -Ddd.trace.sample.rate=1 \
+# -Ddd.appsec.enabled=true \
+ # -Ddd.iast.enabled=true  \
+  -Ddd.service=instruments \
   -Ddd.env=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar

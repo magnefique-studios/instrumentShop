@@ -3,9 +3,7 @@ ADD target/javashop.products-latest.jar app.jar
 ADD products.yml app-config.yml
 EXPOSE 8020
 
-#COPY dd-java-agent.jar  .
-ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
-#ENTRYPOINT java -Ddd.instrumentation.telemetry.enabled=false  -Dotel.traces.sampler=rules -Dotel.traces.sampler.arg=drop=healthcheck -Dotel.resource.attributes=service.name=products,deployment.environment=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar server app-config.yml
+ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
 
 
 ENV DD_SERVICE products
@@ -23,11 +21,11 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
-  -Ddd.agent.host=${DD_AGENT_HOST} \
-  -Ddd.logs.injection=true \
-  -Ddd.trace.sample.rate=1 \
-  -Ddd.appsec.enabled=true \
-  -Ddd.iast.enabled=true  \
+  -Ddd.agent.host=datadog-agent \
   -Ddd.data.streams.enabled=true \
-  -Ddd.service=products \ 	
+ # -Ddd.logs.injection=true \
+  -Ddd.trace.sample.rate=1 \
+  #-Ddd.appsec.enabled=true \
+ # -Ddd.iast.enabled=true  \
+  -Ddd.service=products \
   -Ddd.env=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar

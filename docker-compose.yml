@@ -6,48 +6,45 @@ services:
       - instrument_shop
     labels:
       com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis"}]'
-  datadog:
+  datadog-agent:
     build: datadog
-    container_name: datadog-agent
     pid: host
     cgroup: host
     networks:
       - instrument_shop
-    # ports:
-      #- 8125:8125
-      #- 8126:8126
     environment:
-      - DD_APM_ENABLED=true 
+      - DD_APM_ENABLED=true
       - DD_APM_NON_LOCAL_TRAFFIC=true 
       - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true 
-      - DD_APM_RECEIVER_SOCKET=/var/run/datadog/apm.socket 
-      - DD_DOGSTATSD_SOCKET=/var/run/datadog/apm/inject/run/dsd.socket 
-      - DD_SERVICE_MONITORING_ENABLED=true
+      #- DD_SERVICE_MONITORING_ENABLED=true
       - DD_ENV=${SHOP_USER}_xApm_Instrumentation_Shop
       - DD_API_KEY=${DD_API_KEY}
       - DD_SITE=${DD_SITE}
-      - DD_LOGS_ENABLED=true
-      - DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
-      - DD_CONTAINER_EXCLUDE="name:datadog-agent" 
+      #- DD_LOGS_ENABLED=true
+      #- DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+     # - DD_CONTAINER_EXCLUDE=image:datadog/agent:*
     image: "gcr.io/datadoghq/agent:latest"   
     volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro 
+      - /var/run/docker.sock:/var/run/docker.sock
       - /proc/:/host/proc/:ro
       - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
-      - /var/run/datadog/:/var/run/datadog/ 
-      - /var/lib/docker/containers:/var/lib/docker/containers:ro
-      - /sys/kernel/debug:/sys/kernel/debug
-    cap_add:
-      - SYS_ADMIN
-      - SYS_RESOURCE
-      - SYS_PTRACE
-      - NET_ADMIN
-      - NET_BROADCAST
-      - NET_RAW
-      - IPC_LOCK
-      - CHOWN
-    security_opt:
-      - apparmor:unconfined
+
+     # - /var/run/docker.sock:/var/run/docker.sock:ro 
+     # - /var/lib/docker/containers:/var/lib/docker/containers:ro 
+     # - /proc/:/host/proc/:ro 
+      #- /opt/datadog-agent/run:/opt/datadog-agent/run:rw
+     # - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro 
+    #cap_add:
+      #- SYS_ADMIN
+      #- SYS_RESOURCE
+      #- SYS_PTRACE
+      #- NET_ADMIN
+      #- NET_BROADCAST
+      #- NET_RAW
+      #- IPC_LOCK
+      #- CHOWN
+    #security_opt:
+    #  - apparmor:unconfined
     healthcheck:
       test: /opt/datadog-agent/bin/agent/agent health  | grep -c "PASS" > /dev/null
       interval: 2s
@@ -85,7 +82,7 @@ services:
         source: ./.env
         target: /container/shop/data/.env
     depends_on:
-      datadog:
+      datadog-agent:
         condition: service_healthy
   products:
     image: shabushabu/javashop.products:latest

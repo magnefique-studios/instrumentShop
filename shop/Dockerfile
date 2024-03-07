@@ -18,19 +18,14 @@ ARG DD_GIT_COMMIT_SHA
 ENV DD_GIT_REPOSITORY_URL=${DD_GIT_REPOSITORY_URL} 
 ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
-#ADD https://github.com/signalfx/splunk-otel-java/releases/latest/download/splunk-otel-javaagent-all.jar .
-
 ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
-  -Ddd.agent.host=${DD_AGENT_HOST} \
-  -Ddd.logs.injection=true \
-  -Ddd.trace.sample.rate=1 \
-  -Ddd.appsec.enabled=true \
-  -Ddd.iast.enabled=true  \
+  -Ddd.agent.host=datadog-agent \
   -Ddd.data.streams.enabled=true \
-  -Ddd.service=shop \ 	
+  #-Ddd.logs.injection=true \
+  -Ddd.trace.sample.rate=1 \
+  #-Ddd.appsec.enabled=true \
+  #-Ddd.iast.enabled=true  \
+  -Ddd.service=shop \
   -Ddd.env=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar
-
-# Test Start: ENTRYPOINT java  -Dotel.resource.attributes=service.name=shop,deployment.environment=${USERNAME}2_Apm_Instrumentation_Shop -jar app.jar
-
