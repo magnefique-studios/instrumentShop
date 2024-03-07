@@ -2,11 +2,7 @@ FROM openjdk:17
 ADD target/javashop.instruments-latest.jar app.jar
 EXPOSE 8040
 
-ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
-
-#COPY dd-java-agent.jar  .
-
-COPY latest-java-tracer .
+ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
 
 ENV DD_SERVICE instruments
 ENV DD_VERSION 1.4

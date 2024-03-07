@@ -3,7 +3,6 @@ package com.shabushabu.javashop.stock.services;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import com.shabushabu.javashop.stock.exceptions.StockNotFoundException;
 import com.shabushabu.javashop.stock.model.Stock;
 import com.shabushabu.javashop.stock.repositories.StockRepository;
 

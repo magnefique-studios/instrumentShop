@@ -3,10 +3,8 @@ FROM openjdk:11
 
 ADD target/javashop.shop-latest.jar ./app.jar
 EXPOSE 8010
+ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
 
-#ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
-
-COPY latest-java-tracer .
 
 ENV DD_SERVICE shop
 ENV DD_VERSION 1.4

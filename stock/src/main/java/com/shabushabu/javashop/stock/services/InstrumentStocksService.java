@@ -29,8 +29,12 @@ public class InstrumentStocksService {
 	    }
 	 
 	    public Stock getStock(String productId) throws StockNotFoundException {
-	        return stockRepository.findById(productId)
+				/*productId= ;
+	        	return stockRepository.findById(productId)
 	                .orElseThrow(() -> new StockNotFoundException("Stock not found with productId: " + productId));
+					*/
+
+					return null;
 	    }
 	
 }

@@ -4,7 +4,7 @@ ADD conductors.yml app-config.yml
 EXPOSE 8050
 
 #COPY dd-java-agent.jar  .
-#ADD 'https://dtdg.co/latest-java-tracer' dd-java-agent.jar
+ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
 
 #ADD https://s3.amazonaws.com/dd-agent/scripts/install_script_docker_injection.sh install_script_docker_injection.sh
 
