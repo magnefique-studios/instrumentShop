@@ -7,6 +7,7 @@ ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
 ENV DD_SERVICE instruments
 ENV DD_VERSION 1.4
 
+LABEL com.datadoghq.tags.env=${USERNAME}_xApm_Instrumentation_Shop
 LABEL com.datadoghq.tags.service="instruments"
 LABEL com.datadoghq.tags.version="1.4"
 
@@ -21,7 +22,7 @@ ENV JAVA_OPTS="-Xms2048M -Xmx2048M"
 ENTRYPOINT java $JAVA_OPTS  -javaagent:latest-java-tracer  \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
-  -Ddd.agent.host=datadog  \
+  #-Ddd.agent.host=datadog  \
   -Ddd.data.streams.enabled=true \
   -Ddd.logs.injection=true \
   -Ddd.trace.sample.rate=1 \

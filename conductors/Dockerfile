@@ -19,6 +19,7 @@ ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
 ENV DD_SERVICE conductors
 ENV DD_VERSION 1.4
 
+LABEL com.datadoghq.tags.env=${USERNAME}_xApm_Instrumentation_Shop
 LABEL com.datadoghq.tags.service="conductors"
 LABEL com.datadoghq.tags.version="1.4"
 
@@ -34,7 +35,7 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
   -Ddd.profiling.enabled=false \
   -XX:FlightRecorderOptions=stackdepth=256 \
   -Ddd.dynamic.instrumentation.enabled=true \
-  -Ddd.agent.host=datadog \
+  #-Ddd.agent.host=datadog \
   #-Ddd.agent.host=192.168.1.32 \
 #  -Ddd.agent.host=${DD_AGENT_HOST} \
   -Ddd.data.streams.enabled=true \

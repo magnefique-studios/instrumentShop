@@ -7,10 +7,11 @@ ADD 'https://dtdg.co/latest-java-tracer' latest-java-tracer
 
 
 ENV DD_SERVICE shop
-ENV DD_VERSION 1.4
+ENV DD_VERSION 1.5
 
+LABEL com.datadoghq.tags.env=${USERNAME}_xApm_Instrumentation_Shop
 LABEL com.datadoghq.tags.service="shop"
-LABEL com.datadoghq.tags.version="1.4"
+LABEL com.datadoghq.tags.version="1.5"
 
 ARG DD_GIT_REPOSITORY_URL
 ARG DD_GIT_COMMIT_SHA
@@ -22,10 +23,10 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 ENTRYPOINT java -javaagent:latest-java-tracer \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
-  -Ddd.agent.host=datadog  \
+  -Ddd.agent.host=datadog-agent  \
   #-Ddd.agent.host=192.168.1.32 \
   -Ddd.logs.injection=true \
-  -Ddd.dynamic.instrumentation.enabled=true \
+  -Ddd.dynamic.instrumentation.enabled=false \
   -Ddd.trace.sample.rate=1 \
   -Ddd.appsec.enabled=true \
   -Ddd.iast.enabled=true  \
