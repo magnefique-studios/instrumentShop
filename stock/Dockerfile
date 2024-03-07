@@ -22,7 +22,7 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
- # -Ddd.agent.host=${DD_AGENT_HOST} \
+  -Ddd.agent.host=${DD_AGENT_HOST} \
  #  -Ddd.agent.host=192.168.1.35 \ 
   -Ddd.data.streams.enabled=true \
   -Ddd.agent.host=datadog \

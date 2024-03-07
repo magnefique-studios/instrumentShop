@@ -19,14 +19,14 @@ ENV DD_GIT_COMMIT_SHA=${DD_GIT_COMMIT_SHA}
 
 ENV JAVA_OPTS="-Xms2048M -Xmx2048M"
 
-ENTRYPOINT java $JAVA_OPTS  -javaagent:latest-java-tracer  \
+ENTRYPOINT java -javaagent:dd-java-agent.jar \
   -Ddd.profiling.enabled=true \
   -XX:FlightRecorderOptions=stackdepth=256 \
-  #-Ddd.agent.host=datadog  \
-  -Ddd.data.streams.enabled=true \
+  -Ddd.agent.host=${DD_AGENT_HOST} \
   -Ddd.logs.injection=true \
   -Ddd.trace.sample.rate=1 \
   -Ddd.appsec.enabled=true \
   -Ddd.iast.enabled=true  \
-  -Ddd.service=instruments \
+  -Ddd.data.streams.enabled=true \
+  -Ddd.service=instruments \ 	
   -Ddd.env=${USERNAME}_xApm_Instrumentation_Shop -jar app.jar
