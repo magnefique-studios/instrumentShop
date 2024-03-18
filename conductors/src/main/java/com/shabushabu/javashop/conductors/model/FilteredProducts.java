@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 
 import com.shabushabu.javashop.conductors.exceptions.InvalidLocaleException;
 
-//import io.opentelemetry.instrumentation.annotations.WithSpan;
 
 
 public class FilteredProducts {
@@ -14,7 +13,7 @@ public class FilteredProducts {
 	
    private final Logger s_logger = LoggerFactory.getLogger(FilteredProducts.class);
 	
-//@WithSpan
+
 public boolean filterProducts( String locale) throws InvalidLocaleException {
 	
 	boolean result = true;

@@ -14,12 +14,7 @@ import com.shabushabu.javashop.shop.PropertiesUpdater;
 import com.shabushabu.javashop.shop.services.InstrumentService;
 import com.shabushabu.javashop.shop.services.ProductService;
 
-import io.opentelemetry.instrumentation.annotations.SpanAttribute;
-import io.opentelemetry.instrumentation.annotations.WithSpan;
-
-
 import java.util.HashMap;
-
 
 import javax.naming.NoPermissionException;
 
@@ -124,17 +119,17 @@ public class HomeController {
     }
     
   
-    @WithSpan
-    public void allParameters( @SpanAttribute("name") String name, @SpanAttribute("location") String location, 
-    		 @SpanAttribute("userid")String userid ) throws NoPermissionException {
+  
+    public void allParameters( String name, String location, 
+    		 String userid ) throws NoPermissionException {
     	
     	if (checkIfRestricted(userid) ) {
     		throw new NoPermissionException("User does not have permissions for action requested.");
     	}
     }
     
-    @WithSpan 
-    public boolean checkIfRestricted(@SpanAttribute("userId") String userId) {
+   
+    public boolean checkIfRestricted(String userId) {
     	
     	 boolean bResult = false;
     	/* 

@@ -13,8 +13,7 @@ import com.shabushabu.javashop.products.services.ProductFilterService;
 import com.shabushabu.javashop.products.services.ProductService;
 import com.shabushabu.javashop.products.model.Product;
 import java.util.List;
-import io.opentelemetry.instrumentation.annotations.WithSpan;
-import io.opentelemetry.instrumentation.annotations.SpanAttribute;
+
 
 @RestController
 public class ProductController {
