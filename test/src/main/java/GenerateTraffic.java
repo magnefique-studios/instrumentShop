@@ -17,11 +17,7 @@ public class GenerateTraffic {
 	
 	@SuppressWarnings("unused")
 	public static void main(String[] args) {
-		try {
-		 Thread.sleep(15000);
-		}catch(Exception e ){
-		}
-		 
+	
 		 Properties properties = new Properties();
 		 try (FileInputStream inputStream = new FileInputStream(TESTER_PROPS_FILE)) {
 			 properties.load(inputStream);
@@ -47,7 +43,7 @@ public class GenerateTraffic {
 		 
 
 		 try {
-			 Thread.sleep(60000);
+			 Thread.sleep(20000);
 		 }catch(Exception e) {
 			 e.printStackTrace();
 		 }
@@ -56,7 +52,7 @@ public class GenerateTraffic {
 		boolean chicago = false;
 		
 		if (null != args && args.length >0 ) {
-				chicago = args[0].equalsIgnoreCase("-chicago");
+			chicago = args[0].equalsIgnoreCase("-chicago");
 		}
 		
 		System.out.println("Utah Location");

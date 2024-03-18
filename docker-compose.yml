@@ -143,6 +143,8 @@ services:
       - DD_INSTRUMENT_SERVICE_WITH_APM=false
   shoptester:
     image: shabushabu/javashop.tester:latest
+    networks:
+      - instrument_shop
     build:
       ./test
     links:

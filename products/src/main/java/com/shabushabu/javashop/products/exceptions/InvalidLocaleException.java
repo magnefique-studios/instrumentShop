@@ -1,4 +1,7 @@
 package com.shabushabu.javashop.products.exceptions;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
+
 
 
 

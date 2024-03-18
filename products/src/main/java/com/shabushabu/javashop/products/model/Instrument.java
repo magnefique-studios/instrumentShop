@@ -3,6 +3,8 @@ package com.shabushabu.javashop.products.model;
 
 
 import com.shabushabu.javashop.products.exceptions.InvalidLocaleException;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 
 public class Instrument {
 
@@ -21,7 +23,8 @@ public class Instrument {
     
     private static final String IS_ENGLISH_REGEX = "^[ \\w \\d \\s \\. \\& \\+ \\- \\, \\! \\@ \\# \\$ \\% \\^ \\* \\( \\) \\; \\\\ \\/ \\| \\< \\> \\\" \\' \\? \\= \\: \\[ \\] ]*$";
 
-	private static boolean isEnglish(String text) {
+	@WithSpan()
+	private static boolean isEnglish(@SpanAttribute("text") String text) {
 			if (text == null) {
 				return false;
 			}
@@ -47,9 +50,10 @@ public class Instrument {
     }
     
 
+    @WithSpan()
     public Instrument buildIt(
-    	long id, /*String sub_title,*/ String price, String instrument_type, String condition, 
-		String seller_type, String location /* String published_date String quantity */ ) {
+    	@SpanAttribute("id") long id, /*String sub_title,*/ @SpanAttribute("price") String price, @SpanAttribute("instrument_type") String instrument_type, @SpanAttribute("condition") String condition, 
+		@SpanAttribute("seller_type") String seller_type, @SpanAttribute("location") String location /* String published_date String quantity */ ) {
 	 	this.id= id;
 	    //sub_title = sub_title;
 	 	this.price = price;
@@ -62,9 +66,10 @@ public class Instrument {
 	 	return this;
     }
     
+    @WithSpan()
     public Instrument buildForLocale(
-        	long id, String title, /*String sub_title,*/ String price, String instrument_type, String condition, 
-    		String seller_type, String location /* String published_date String quantity */ ) throws InvalidLocaleException {
+        	@SpanAttribute("id") long id, @SpanAttribute("title") String title, /*String sub_title,*/ @SpanAttribute("price") String price, @SpanAttribute("instrument_type") String instrument_type, @SpanAttribute("condition") String condition, 
+    		@SpanAttribute("seller_type") String seller_type, @SpanAttribute("location") String location /* String published_date String quantity */ ) throws InvalidLocaleException {
     	 	this.id= id;
     	 	
     	    if (!isEnglish(title)) {

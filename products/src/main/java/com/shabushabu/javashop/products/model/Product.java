@@ -3,6 +3,8 @@ package com.shabushabu.javashop.products.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.math.BigDecimal;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 
 public class Product {
     private String id;

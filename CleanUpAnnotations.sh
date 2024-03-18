@@ -32,7 +32,7 @@
 
       mv shop/src/main/java/com/shabushabu/javashop/shop/JavaShopApp.javaOLD shop/src/main/java/com/shabushabu/javashop/shop/JavaShopApp.java
 
-      mv products/src/main/java/com/shabushabu/javashop/products/resources/ProductResource.javaOLD products/src/main/java/com/shabushabu/javashop/products/resources/ProductResource.java
+      mv products/src/main/java/com/shabushabu/javashop/products/services/ProductService.javaOLD products/src/main/java/com/shabushabu/javashop/products/resources/ProductService.java
 
 mv shop/src/main/java/com/shabushabu/javashop/shop/model/Instrument.javaOLD shop/src/main/java/com/shabushabu/javashop/shop/model/Instrument.java
 
@@ -48,3 +48,11 @@ mv    instruments/src/main/java/com/shabushabu/javashop/instruments/repositories
 mv    instruments/src/main/java/com/shabushabu/javashop/instruments/resources/InstrumentResource.javaOLD         instruments/src/main/java/com/shabushabu/javashop/instruments/resources/InstrumentResource.java
 mv    instruments/src/main/java/com/shabushabu/javashop/instruments/services/InstrumentService.javaOLD            instruments/src/main/java/com/shabushabu/javashop/instruments/services/InstrumentService.java
 mv    instruments/src/main/java/com/shabushabu/javashop/instruments/services/InstrumentStocksService.javaOLD      instruments/src/main/java/com/shabushabu/javashop/instruments/services/InstrumentStocksService.java
+
+mv products/src/main/java/com/shabushabu/javashop/products/ProductServiceApplication.javaOLD products/src/main/java/com/shabushabu/javashop/products/ProductServiceApplication.java
+mv        products/src/main/java/com/shabushabu/javashop/products/controllers/ProductController.javaOLD         products/src/main/java/com/shabushabu/javashop/products/controllers/ProductController.java
+mv        products/src/main/java/com/shabushabu/javashop/products/exceptions/InvalidLocaleException.javaOLD         products/src/main/java/com/shabushabu/javashop/products/exceptions/InvalidLocaleException.java
+mv        products/src/main/java/com/shabushabu/javashop/products/model/Instrument.javaOLD products/src/main/java/com/shabushabu/javashop/products/model/Instrument.java
+mv        products/src/main/java/com/shabushabu/javashop/products/model/Product.javaOLD  products/src/main/java/com/shabushabu/javashop/products/model/Product.java
+mv        products/src/main/java/com/shabushabu/javashop/products/services/ProductFilterService.javaOLD products/src/main/java/com/shabushabu/javashop/products/services/ProductFilterService.java
+mv        products/src/main/java/com/shabushabu/javashop/products/services/ProductService.javaOLD products/src/main/java/com/shabushabu/javashop/products/services/ProductService.java

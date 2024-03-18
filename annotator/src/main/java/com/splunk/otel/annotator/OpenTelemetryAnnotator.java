@@ -36,7 +36,7 @@ public class OpenTelemetryAnnotator {
 	private static final String SHOP_ENV_FILE = "../.env";
 	//private static final String FILE_PATH = "../shop/";
 	private static final String FILE_PATH2 = 
-			"../products/src/main/java/com/shabushabu/javashop/products/resources";
+			"../products/src/main/java/com/shabushabu/javashop/products";
 	//private static final String FILE_PATH3 = 
 	//		"../instruments/";
 	
