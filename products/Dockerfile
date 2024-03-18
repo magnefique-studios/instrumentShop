@@ -11,7 +11,7 @@ ENV DD_VERSION 1.5
 
 LABEL com.datadoghq.tags.env=${USERNAME}_xApm_Instrumentation_Shop
 LABEL com.datadoghq.tags.service="products"
-LABEL com.datadoghq.tags.version="1.5"
+LABEL com.datadoghq.tags.version="1.6"
 
 ARG DD_GIT_REPOSITORY_URL
 ARG DD_GIT_COMMIT_SHA
