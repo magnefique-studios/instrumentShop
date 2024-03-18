@@ -9,6 +9,8 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import com.shabushabu.javashop.products.model.Product;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 
 
 public class ProductFilterService {
@@ -17,7 +19,8 @@ public class ProductFilterService {
 	    private static Logger s_logger = LogManager.getLogger(ProductFilterService.class);
 	    
 	     
-	    public List<Product> filterAllProducts(String location,  ProductService productService) {
+	    @WithSpan()
+	    public List<Product> filterAllProducts(@SpanAttribute("location") String location,  @SpanAttribute("productService") ProductService productService) {
 	    	s_logger.info("Enteriing ProductResource::getAllProducts() location = " + location);
 	    	//  All we know right now is somewhere in this function, latency was introduced.
 	  
@@ -227,7 +230,8 @@ public class ProductFilterService {
 	    }
 	    
 	     
-	    private void myCoolFunction(String location) {
+	    @WithSpan()
+	    private void myCoolFunction(@SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
@@ -242,7 +246,8 @@ public class ProductFilterService {
 	  
 	    
 	     
-	    private void myCoolFunction1( String location) {
+	    @WithSpan()
+	    private void myCoolFunction1( @SpanAttribute("location") String location) {
 	      // Generate a FAST sleep of 0 time !
 	      int sleepy = lookupLocation1(location);
 	      try{
@@ -253,7 +258,8 @@ public class ProductFilterService {
 	      }
 	    }
 	     
-	    private int lookupLocation1( String location) {
+	    @WithSpan()
+	    private int lookupLocation1( @SpanAttribute("location") String location) {
 	    	 int sleepy =4;
 	    	 
 	    	 return sleepy;
@@ -261,8 +267,9 @@ public class ProductFilterService {
 		}
 	    
 	    @SuppressWarnings("unused")
-		    
-		   private int lookupLocation19( String location) {
+		   @WithSpan()
+ 	   
+		   private int lookupLocation19( @SpanAttribute("location") String location) {
 	    	
 	    	int sleepy = lookupLocation1(location);
 	    	// Generate a FAST sleep of 0 time !
@@ -278,7 +285,8 @@ public class ProductFilterService {
 		}
 
 		 
-		private void myCoolFunction2(String location) {
+		@WithSpan()
+		private void myCoolFunction2(@SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 3;
 	        try{
@@ -290,7 +298,8 @@ public class ProductFilterService {
 	      }
 		
 	     
-	    private int lookupLocation3( String location) {
+	    @WithSpan()
+	    private int lookupLocation3( @SpanAttribute("location") String location) {
 	    	 // Generate a FAST sleep of 0 time !
 	        int sleepy = 2;
 	      
@@ -303,8 +312,9 @@ public class ProductFilterService {
 			
 		}
 	    @SuppressWarnings("unused")
-		    
-		   private int lookupLocation4(String location) {
+		   @WithSpan()
+ 	   
+		   private int lookupLocation4(@SpanAttribute("location") String location) {
 	    	 // Generate a FAST sleep of 0 time !
 	        int sleepy = 2;
 	        if (location.equalsIgnoreCase("California")) {
@@ -319,7 +329,8 @@ public class ProductFilterService {
 			
 		}
 	     
-	    private int myCoolFunction5(String location) {
+	    @WithSpan()
+	    private int myCoolFunction5(@SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 2;
 	        lookupLocation3(location);
@@ -331,7 +342,8 @@ public class ProductFilterService {
 			return sleepy;
 	      }
 	     
-	    private void myCoolFunction6(String location) {
+	    @WithSpan()
+	    private void myCoolFunction6(@SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 3;
 	        try{
@@ -341,7 +353,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction7(String location) {
+	    @WithSpan()
+	    private void myCoolFunction7(@SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 4;
 	        try{
@@ -351,7 +364,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction8(  String location) {
+	    @WithSpan()
+	    private void myCoolFunction8(  @SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 8;
 	        try{
@@ -361,7 +375,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction9(  String location) {
+	    @WithSpan()
+	    private void myCoolFunction9(  @SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
@@ -373,7 +388,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction10(  String location) {
+	    @WithSpan()
+	    private void myCoolFunction10(  @SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
@@ -383,7 +399,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction11(  String location) {
+	    @WithSpan()
+	    private void myCoolFunction11(  @SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = locationLookup11(location);
 	        try{
@@ -394,7 +411,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction12(  String location) {
+	    @WithSpan()
+	    private void myCoolFunction12(  @SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
@@ -404,7 +422,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction13(  String location) {
+	    @WithSpan()
+	    private void myCoolFunction13(  @SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
@@ -414,7 +433,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction14(  String location) {
+	    @WithSpan()
+	    private void myCoolFunction14(  @SpanAttribute("location") String location) {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
 	        try{
@@ -425,7 +445,8 @@ public class ProductFilterService {
 	      }
 	    
 	     
-	    private void myCoolFunction23(  String loc,   String location,    int index){
+	    @WithSpan()
+	    private void myCoolFunction23(  @SpanAttribute("loc") String loc,   @SpanAttribute("location") String location,    @SpanAttribute("index") int index){
 	    	s_logger.info("Location Index is ... " + index);
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
@@ -437,7 +458,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction24(  String loc,   String location,    int index){
+	    @WithSpan()
+	    private void myCoolFunction24(  @SpanAttribute("loc") String loc,   @SpanAttribute("location") String location,    @SpanAttribute("index") int index){
 	    	s_logger.info("Location Index is ... " + index);
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
@@ -449,7 +471,8 @@ public class ProductFilterService {
 	        }
 	      }
 	     
-	    private void myCoolFunction25(  String loc,   String location,    int index){
+	    @WithSpan()
+	    private void myCoolFunction25(  @SpanAttribute("loc") String loc,   @SpanAttribute("location") String location,    @SpanAttribute("index") int index){
 			s_logger.info("Location Index is ... ");
 
 			s_logger.info("Location Index is ... " + index);
@@ -464,6 +487,7 @@ public class ProductFilterService {
 	      }
 	    
 	     
+	    @WithSpan()
 	    private void myCoolFunction() {
 	    	s_logger.info("Location Index is ... ");
 			@SuppressWarnings("unused")
@@ -480,7 +504,8 @@ public class ProductFilterService {
 	        }
 	      }
 	    @SuppressWarnings("unused")
-		    
+		   @WithSpan()
+ 	   
 		   private void myCoolFunction33() {
 	        // Generate a FAST sleep of 0 time !
 	    	s_logger.info("Location Index is ... ");
@@ -495,8 +520,9 @@ public class ProductFilterService {
 	        }
 	      }
 	    @SuppressWarnings("unused")
-		    
-		   private void myCoolFunction34(  String location) {
+		   @WithSpan()
+ 	   
+		   private void myCoolFunction34(  @SpanAttribute("location") String location) {
 	    	s_logger.info("Location Index is ... ");
 			int sleepy1 =3;
 	    	  Random random = new Random();
@@ -511,7 +537,8 @@ public class ProductFilterService {
 	      }
 	    
 	     
-	    private int locationLookup2(  String location) {
+	    @WithSpan()
+	    private int locationLookup2(  @SpanAttribute("location") String location) {
 	    	System.out.println("Location Index is ... ");
 	    	@SuppressWarnings("unused")
 			int sleepy1 =3;
@@ -526,8 +553,9 @@ public class ProductFilterService {
 		}
 	    
 	    @SuppressWarnings("unused")
-		    
-		   private int locationLookup21(  String location) {
+		   @WithSpan()
+ 	   
+		   private int locationLookup21(  @SpanAttribute("location") String location) {
 	    	s_logger.info("Location Index is ... ");
 	    	@SuppressWarnings("unused")
 			int sleepy1 =3;
@@ -541,8 +569,9 @@ public class ProductFilterService {
 			return 0;
 		}
 	    @SuppressWarnings("unused")
-		    
-		   private int locationLookup22(  String location) {
+		   @WithSpan()
+ 	   
+		   private int locationLookup22(  @SpanAttribute("location") String location) {
 	    	s_logger.info("Location Index is ... ");
 	    	int sleepy1 =3;
 	    	 // Generate a FAST sleep of 0 time !
@@ -555,8 +584,9 @@ public class ProductFilterService {
 			return 0;
 		}
 	    @SuppressWarnings("unused")
-		    
-		   private int locationLookup23(  String location) {
+		   @WithSpan()
+ 	   
+		   private int locationLookup23(  @SpanAttribute("location") String location) {
 	    	s_logger.info("Location Index is ... ");
 			int sleepy1 =3;
 	    	 // Generate a FAST sleep of 0 time !
@@ -570,8 +600,9 @@ public class ProductFilterService {
 		}
 
 		@SuppressWarnings("unused")
-		 
-		private int locationLookup11(  String location) { 
+		@WithSpan()
+ 	
+		private int locationLookup11(  @SpanAttribute("location") String location) { 
 			s_logger.info("Location Index is ... ");
 			int sleepy = 1;
 	    	if (location.equalsIgnoreCase("Colorado")) {
@@ -589,8 +620,9 @@ public class ProductFilterService {
 	      }
 		
 		 @SuppressWarnings("unused")
-		  
-		 private int locationLookup15(  String location) {
+		 @WithSpan()
+ 	 
+		 private int locationLookup15(  @SpanAttribute("location") String location) {
 			 s_logger.info("Location Index is ... ");
 			
 	    	 // Generate a FAST sleep of 0 time !
@@ -607,7 +639,8 @@ public class ProductFilterService {
 		}
 		 
 		  
-		 private void myCoolFunction234234234( int myInt) {
+		 @WithSpan()
+		 private void myCoolFunction234234234( @SpanAttribute("myInt") int myInt) {
 		    	// Generate a FAST sleep of 0 time !
 		    Random sleepy = new Random();
 		    try{
@@ -622,8 +655,9 @@ public class ProductFilterService {
 		}
 		 
 	    @SuppressWarnings("unused")
-		    
-		   private int locationLookup16(  String location) {
+		   @WithSpan()
+ 	   
+		   private int locationLookup16(  @SpanAttribute("location") String location) {
 	    	s_logger.info("Location Index is ... ");
 			
 	    	 // Generate a FAST sleep of 0 time !
@@ -639,7 +673,8 @@ public class ProductFilterService {
 			return 0;
 		}
 	    @SuppressWarnings("unused")
-		    
+		   @WithSpan()
+ 	   
 		   private void myCoolFunction3333() {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
@@ -653,7 +688,8 @@ public class ProductFilterService {
 	        }
 	      }
 	    @SuppressWarnings("unused")
-		    
+		   @WithSpan()
+ 	   
 		   private void myCoolFunction433434() {
 	        // Generate a FAST sleep of 0 time !
 	        int sleepy = 0;
@@ -688,4 +724,5 @@ public class ProductFilterService {
 	    
 	    
 	}
+
 

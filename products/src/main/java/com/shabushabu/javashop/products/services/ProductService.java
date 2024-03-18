@@ -4,6 +4,8 @@ import com.shabushabu.javashop.products.model.Product;
 
 import java.math.BigDecimal;
 import java.util.*;
+import io.opentelemetry.instrumentation.annotations.WithSpan;
+import io.opentelemetry.instrumentation.annotations.SpanAttribute;
 
 
 public class ProductService {
@@ -27,3 +29,4 @@ public class ProductService {
         return Optional.ofNullable(fakeProductDAO.get(id));
     }
 }
+
