@@ -1,4 +1,4 @@
-FROM  openjdk:11-jre
+FROM eclipse-temurin:11-jre
 
 ADD target/javashop.tester-latest.jar ./app.jar
 

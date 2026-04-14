@@ -4,53 +4,53 @@ services:
     image: redis
     networks:
       - instrument_shop
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis"}]'
-  datadog-agent:
-    build: datadog
-    pid: host
-    cgroup: host
-    networks:
-      - instrument_shop
-    environment:
-      - DD_APM_ENABLED=true
-      - DD_APM_NON_LOCAL_TRAFFIC=true 
-      - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true 
-      #- DD_SERVICE_MONITORING_ENABLED=true
-      - DD_ENV=${SHOP_USER}_xApm_Instrumentation_Shop
-      - DD_API_KEY=${DD_API_KEY}
-      - DD_SITE=${DD_SITE}
-      #- DD_LOGS_ENABLED=true
-      #- DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
-     # - DD_CONTAINER_EXCLUDE=image:datadog/agent:*
-    image: "gcr.io/datadoghq/agent:latest"   
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock
-      - /proc/:/host/proc/:ro
-      - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
+    # labels:
+    #   com.datadoghq.ad.logs: '[{"source": "redis", "service": "redis"}]'
+  # datadog-agent:
+  #   build: datadog
+  #   pid: host
+  #   cgroup: host
+  #   networks:
+  #     - instrument_shop
+  #   environment:
+  #     - DD_APM_ENABLED=true
+  #     - DD_APM_NON_LOCAL_TRAFFIC=true 
+  #     - DD_DOGSTATSD_NON_LOCAL_TRAFFIC=true 
+  #     #- DD_SERVICE_MONITORING_ENABLED=true
+  #     - DD_ENV=${SHOP_USER}_xApm_Instrumentation_Shop
+  #     - DD_API_KEY=${DD_API_KEY}
+  #     - DD_SITE=${DD_SITE}
+  #     #- DD_LOGS_ENABLED=true
+  #     #- DD_LOGS_CONFIG_CONTAINER_COLLECT_ALL=true
+  #    # - DD_CONTAINER_EXCLUDE=image:datadog/agent:*
+  #   image: "gcr.io/datadoghq/agent:latest"   
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock
+  #     - /proc/:/host/proc/:ro
+  #     - /sys/fs/cgroup:/host/sys/fs/cgroup:ro
 
-     # - /var/run/docker.sock:/var/run/docker.sock:ro 
-     # - /var/lib/docker/containers:/var/lib/docker/containers:ro 
-     # - /proc/:/host/proc/:ro 
-      #- /opt/datadog-agent/run:/opt/datadog-agent/run:rw
-     # - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro 
-    #cap_add:
-      #- SYS_ADMIN
-      #- SYS_RESOURCE
-      #- SYS_PTRACE
-      #- NET_ADMIN
-      #- NET_BROADCAST
-      #- NET_RAW
-      #- IPC_LOCK
-      #- CHOWN
-    #security_opt:
-    #  - apparmor:unconfined
-    healthcheck:
-      test: /opt/datadog-agent/bin/agent/agent health  | grep -c "PASS" > /dev/null
-      interval: 2s
-      retries: 10
-      start_period: 5s
-      timeout: 2s
+  #    # - /var/run/docker.sock:/var/run/docker.sock:ro 
+  #    # - /var/lib/docker/containers:/var/lib/docker/containers:ro 
+  #    # - /proc/:/host/proc/:ro 
+  #     #- /opt/datadog-agent/run:/opt/datadog-agent/run:rw
+  #    # - /sys/fs/cgroup/:/host/sys/fs/cgroup:ro 
+  #   #cap_add:
+  #     #- SYS_ADMIN
+  #     #- SYS_RESOURCE
+  #     #- SYS_PTRACE
+  #     #- NET_ADMIN
+  #     #- NET_BROADCAST
+  #     #- NET_RAW
+  #     #- IPC_LOCK
+  #     #- CHOWN
+  #   #security_opt:
+  #   #  - apparmor:unconfined
+  #   healthcheck:
+  #     test: /opt/datadog-agent/bin/agent/agent health  | grep -c "PASS" > /dev/null
+  #     interval: 2s
+  #     retries: 10
+  #     start_period: 5s
+  #     timeout: 2s
   shop:
     image: shabushabu/javashop.shop:latest
     build:
@@ -59,15 +59,15 @@ services:
       - "8010:8010"
     networks:
       - instrument_shop
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "shop", "service": "shop"}]'
+    # labels:
+    #   com.datadoghq.ad.logs: '[{"source": "shop", "service": "shop"}]'
     links:
       - products
       - stock
       - instruments
     environment:
       - USERNAME=${SHOP_USER}
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      # - DD_INSTRUMENT_SERVICE_WITH_APM=false
     healthcheck:
       test: curl -sS http://localhost:8010/healthcheck | grep -c 200 > /dev/null
       interval: 2s
@@ -78,16 +78,16 @@ services:
       - type: bind
         source: ./shop/data
         target: /container/shop/data
-      - type: bind
-        source: ./.env
-        target: /container/shop/data/.env
-    depends_on:
-      datadog-agent:
-        condition: service_healthy
+      # - type: bind
+      #   source: ./.env
+      #   target: /container/shop/data/.env
+    # depends_on:
+    #   datadog-agent:
+    #     condition: service_healthy
   products:
     image: shabushabu/javashop.products:latest
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "products", "service": "products"}]'
+    # labels:
+    #   com.datadoghq.ad.logs: '[{"source": "products", "service": "products"}]'
     build:
       ./products
     networks:
@@ -102,11 +102,11 @@ services:
       timeout: 2s
     environment:
       - USERNAME=${SHOP_USER}
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      # - DD_INSTRUMENT_SERVICE_WITH_APM=false
   conductors:
     image: shabushabu/javashop.conductors:latest
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "conductors", "service": "conductors"}]'
+    # labels:
+    #   com.datadoghq.ad.logs: '[{"source": "conductors", "service": "conductors"}]'
     build:
       ./conductors
     ports:
@@ -121,11 +121,11 @@ services:
       timeout: 2s
     environment:
       - USERNAME=${SHOP_USER}
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      # - DD_INSTRUMENT_SERVICE_WITH_APM=false
   stock:
     image: shabushabu/javashop.stock:latest
-    labels:
-      com.datadoghq.ad.logs: '[{"source": "stock", "service": "stock"}]'
+    # labels:
+    #   com.datadoghq.ad.logs: '[{"source": "stock", "service": "stock"}]'
     build:
       ./stock
     ports:
@@ -140,7 +140,7 @@ services:
       timeout: 2s 
     environment:
       - USERNAME=${SHOP_USER}
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      # - DD_INSTRUMENT_SERVICE_WITH_APM=false
   shoptester:
     image: shabushabu/javashop.tester:latest
     networks:
@@ -151,7 +151,7 @@ services:
       - shop
     environment:
       - USERNAME=${SHOP_USER}
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      # - DD_INSTRUMENT_SERVICE_WITH_APM=false
         # con/opt/datadog-agent/bin/agent/agent healthdition: service_healthy
     volumes: 
       - type: bind
@@ -180,7 +180,7 @@ services:
       - SPRING_DATASOURCE_USERNAME=instruments
       - SPRING_DATASOURCE_PASSWORD=instruments
       - SPRING_JPA_HIBERNATE_DDL_AUTO=update
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      # - DD_INSTRUMENT_SERVICE_WITH_APM=false
     depends_on:
       postgresDB:
         condition: service_healthy
@@ -192,7 +192,7 @@ services:
     environment:
       - POSTGRES_USER=instruments
       - POSTGRES_PASSWORD=instruments
-      - DD_INSTRUMENT_SERVICE_WITH_APM=false
+      # - DD_INSTRUMENT_SERVICE_WITH_APM=false
     ports:
       - "5432:5432"
     healthcheck:

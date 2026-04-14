@@ -21,6 +21,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
             <java.version>1.8</java.version>
+            <aspectj.version>1.9.19</aspectj.version>
     </properties>
     
     <dependencyManagement>
@@ -46,6 +47,11 @@
 
     <dependencies>
 		
+		<dependency>
+			<groupId>org.aspectj</groupId>
+			<artifactId>aspectjweaver</artifactId>
+			<version>${aspectj.version}</version>
+		</dependency>
 		
 		<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
