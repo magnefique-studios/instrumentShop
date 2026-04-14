@@ -29,8 +29,8 @@ jobs:
         cache: maven
   #  - name: Build and Deploy
   #    run: mvn -B package --file pom.xml
-    - name: Build And Docker
-      run: ./BuildOnly.sh
+    - name: Build And Deploy
+      run: ./BuilAndDeploy.sh
     - name: Sleep for 100 seconds
       run: sleep 100s
       shell: bash    
