@@ -1,7 +1,7 @@
 
 ## Java Instrument Shop 
 
-# Learn how Datadog APM helps Software Engineers and Dev Ops Engineers crush bugs.
+# Learn how APM helps Software Engineers and Dev Ops Engineers crush bugs.
 
 ## Hands on Workshop Scenario
 
