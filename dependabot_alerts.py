@@ -53,11 +53,11 @@ def gh_headers(token):
 def fetch_alerts(token):
     headers = gh_headers(token)
     alerts = []
-    page = 1
+    url = ALERTS_URL
+    params = {"per_page": 100}
 
-    while True:
-        params = {"per_page": 100, "page": page}
-        resp = requests.get(ALERTS_URL, headers=headers, params=params)
+    while url:
+        resp = requests.get(url, headers=headers, params=params)
 
         if resp.status_code == 404:
             print(f"Error 404: Repository {OWNER}/{REPO} not found or "
@@ -75,7 +75,15 @@ def fetch_alerts(token):
         if not batch:
             break
         alerts.extend(batch)
-        page += 1
+
+        # Follow cursor-based pagination via Link header
+        url = None
+        params = {}
+        link_header = resp.headers.get("Link", "")
+        for part in link_header.split(","):
+            if 'rel="next"' in part:
+                url = part.split(";")[0].strip().strip("<>")
+                break
 
     return alerts
 
