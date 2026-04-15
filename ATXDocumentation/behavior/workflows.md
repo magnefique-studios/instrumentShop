@@ -1,128 +1,104 @@
 > ⚠️ **Early Access**: Behavior documentation is in early access. Please review critically.
 
-# Application Workflows
+# Workflows
 
-## Workflow 1: Product Browsing
+## Workflow 1: Product and Instrument Retrieval (Main Application Flow)
 
-**Entry Point**: `GET /` on Shop (port 8010)
+**Entry Point**: `HomeController.getProductsAllLocations()` — `GET /`
 
-```
-User Browser
-     │
-     │ GET /?name=&location=&userid=
-     ▼
-HomeController.getProductsAllLocations()
-     │
-     ├── Exercises.incrementTracesSent()
-     │
-     ├── allParameters() → checkIfRestricted(userid)
-     │    [Currently always returns false]
-     │
-     ├── productService.getProducts(location)
-     │    │
-     │    ├── productRepo.getProductDTOs(location)
-     │    │    │
-     │    │    ├─ [If Utah] ──▶ GET conductors:8050/conductors?location=Utah
-     │    │    │                    └── ConductorsController.getProductsByLocation()
-     │    │    │                         ├── location = "Oregon" (hardcoded override)
-     │    │    │                         ├── FilteredProducts.filterProducts("Oregon") → throws (caught)
-     │    │    │                         └── ProductFilterService.filterAllProducts("Oregon", service)
-     │    │    │                              └── ConductorsService.getAllProducts() → 5 products
-     │    │    │
-     │    │    └─ [Else] ────▶ GET products:8020/products?location={location}
-     │    │                      └── ProductController.getProductsByLocation()
-     │    │                           └── ProductFilterService.filterAllProducts(location, service)
-     │    │                                ├── [100+ myCoolFunction*() calls with Thread.sleep()]
-     │    │                                ├── [Colorado: 966-1166ms extra latency]
-     │    │                                └── ProductService.getAllProducts() → 5 products
-     │    │
-     │    ├── stockRepo.getStockDTOs()
-     │    │    └── @HystrixCommand ──▶ GET stock:8030/legacy
-     │    │         └── StockResource.getStocks()
-     │    │              └── StockService.getStocks() → 5 stock records
-     │    │
-     │    └── Merge ProductDTOs + StockDTOs → List<Product>
-     │
-     ├── [Track latency for Utah/Colorado]
-     │
-     ├── instrumentService.getInstruments(location)
-     │    │
-     │    └── instrumentRepo.getinstrumentsByLocation(location)
-     │         └── GET instruments:8040/instruments?location={location}
-     │              └── InstrumentResource.getInstruments()
-     │                   └── InstrumentService.getInstruments(location)
-     │                        ├── FilteredInstrument.filterInstruments(location)
-     │                        ├── [Chicago] findInstruments() → cross-table query
-     │                        └── findAll() → all instruments from DB
-     │
-     └── Return Thymeleaf "index" template
-```
+1. User navigates to shop homepage with optional `name`, `location`, `userid` parameters
+2. Default values applied: name="Guest", location="California", userid="X0000"
+3. Permission check: `allParameters()` → `checkIfRestricted(userid)` (currently always passes)
+4. **Product retrieval**: `productService.getProducts(location)`
+   - `ProductRepo.getProductDTOs(location)` routes based on location:
+     - If Utah → HTTP GET to `conductors:8050/conductors?location=Utah`
+     - Else → HTTP GET to `products:8020/products?location={location}`
+   - `StockRepo.getStockDTOs()` → HTTP GET to `stock:8030/legacy` (Hystrix-protected)
+   - Products and stock data merged into `List<Product>`
+5. Latency tracked for Utah and Colorado locations
+6. **Instrument retrieval**: `instrumentService.getInstruments(location)`
+   - `InstrumentRepo.getinstrumentsByLocation(location)` → HTTP GET to `instruments:8040/instruments?location={location}`
+   - Each InstrumentDTO mapped to Instrument with locale validation
+7. Model populated with user, products, instruments → Thymeleaf "index" template rendered
 
-## Workflow 2: Exercise Scoring
+---
 
-**Entry Point**: `GET /score?exercise=&data=` on Shop (port 8010)
+## Workflow 2: Product Catalog Processing (Products Service)
 
-```
-User/Client
-     │
-     │ GET /score?exercise={n}&data={data}
-     ▼
-HomeController.getScores()
-     │
-     ├── [exercise=0] → PropertiesUpdater.getListOfScores()
-     │    └── Read /container/shop/data/shop.properties
-     │         └── Return HashMap of all exercise scores
-     │
-     └── [exercise=1-15] → Exercises.checkExercise(exercise, data, controller)
-          │
-          ├── case 1: checkExercise2(controller, data)     → Send metric with user token
-          ├── case 2: checkExercise2(controller, "")        → Send metric with file token
-          ├── case 3: checkExercise3(controller)            → Check traces ≤ 180
-          ├── case 4: checkExercise4(controller)            → Colorado latency > Utah×1.2
-          ├── case 5: checkExercise5(controller)            → Check user restriction
-          ├── case 6: data.contains("Authorization")
-          ├── case 7: data contains "Shop"/"Products"
-          ├── case 8: data.contains("Not")
-          ├── case 9: data.contains("getAllProducts")
-          ├── case 10: data contains "myCool" or "lookup" (not "getAllProducts")
-          ├── case 11: checkExercise11 → check "Annotated" property
-          ├── case 12: checkExercise3 (same as case 3)
-          ├── case 13: data.contains("myCoolFunction234234234")
-          ├── case 14: data.contains("@SpanAttribute")
-          └── case 15: !checkExercise4 (inverse of case 4)
-```
+**Entry Point**: `ProductController.getProductsByLocation()` — `GET /products`
 
-## Workflow 3: Direct Product Listing
+1. Location parameter received (defaults to "California" if null)
+2. `ProductService` instantiated (creates 5 hardcoded products in memory)
+3. `ProductFilterService.filterAllProducts(location, service)` invoked
+4. Filter executes 50+ `myCoolFunction*()` calls:
+   - Most are trivial sleeps (0-8ms)
+   - For Colorado: `locationLookup11()` → `myCoolFunction234234234(999)` → sleep 966-1166ms
+5. Returns `productService.getAllProducts()` (all 5 products)
 
-**Entry Point**: `GET /products` on Shop (port 8010)
+---
 
-```
-Client
-     │
-     │ GET /products?location={location}
-     ▼
-ProductResource.getProducts()
-     │
-     └── productService.getProducts(location)
-          └── [Same as Product Browsing workflow from productService step]
-```
+## Workflow 3: Conductor Product Processing (Conductors Service)
 
-## Workflow 4: Instrument Stock Retrieval
+**Entry Point**: `ConductorsController.getProductsByLocation()` — `GET /conductors`
 
-**Entry Point**: `GET /stocks` on Instruments (port 8040)
+1. Location parameter received but **overridden to "Oregon"**
+2. `ConductorsService` instantiated (creates same 5 hardcoded products)
+3. `FilteredProducts.filterProducts("Oregon")` called → throws `InvalidLocaleException`
+4. Exception caught by empty catch block (swallowed)
+5. `ProductFilterService.filterAllProducts("Oregon", service)` invoked
+6. All filtering is **commented out** — directly returns `productService.getAllProducts()`
 
-```
-Client
-     │
-     │ GET /stocks
-     ▼
-InstrumentResource.getInstrumentStocks()
-     │
-     └── instrumentStocksService.getInstrumentStocks()
-          └── stockRepository.findAll() → List<Stock>
-```
+---
 
-## Cross-References
+## Workflow 4: Instrument Data Retrieval (Instruments Service)
+
+**Entry Point**: `InstrumentResource.getInstruments()` — `GET /instruments`
+
+1. Location parameter received (default "California")
+2. `InstrumentService.getInstruments(location)` invoked
+3. Locale filter: `FilteredInstrument.filterInstruments(location)`
+   - Oregon → `InvalidLocaleException` thrown → caught, returns empty list
+4. If location is "Chicago":
+   - Executes `findInstruments()` — Cartesian product native SQL query
+   - Falls back to `findAll()` from JPA repository
+5. All other locations: standard `findAll()` from JPA → returns all instruments from PostgreSQL
+
+---
+
+## Workflow 5: OpenTelemetry Annotation (Annotator Tool)
+
+**Entry Point**: `OpenTelemetryAnnotator.main()` — CLI execution
+
+1. Defines target directory: `../products/src/main/java/com/shabushabu/javashop/products`
+2. `annotateCodebase(projectDir)` called
+3. `listFiles(URI)` walks directory tree recursively, collects all `.java` files
+4. For each Java file:
+   - Parsed using JavaParser `StaticJavaParser.parse()`
+   - `LexicalPreservingPrinter` setup to maintain formatting
+   - `OtelAnnotationVisitor` visits each `MethodDeclaration`:
+     - Skips: main methods, setters, most getters, health check methods
+     - Adds `@WithSpan` annotation to qualifying methods
+     - Adds `@SpanAttribute("paramName")` to all parameters
+   - OpenTelemetry import statements added to compilation unit
+   - Original file renamed to `.javaOLD`, annotated code written to original filename
+5. Updates `.env` file to set `Annotated=true`
+
+---
+
+## Workflow 6: Exercise Scoring (Shop Module)
+
+**Entry Point**: `HomeController.getScores()` — `GET /score`
+
+1. If exercise=0: returns all stored scores from `PropertiesUpdater`
+2. If exercise>0: validates specific exercise via `Exercises.checkExercise()`
+   - Each exercise has unique validation logic (1-15)
+   - Results returned as `{"exerciseN": "true/false"}`
+
+## Related Documents
 
 - [Business Logic](business-logic.md) | [Decision Logic](decision-logic.md) | [Error Handling](error-handling.md)
-- [System Overview](../architecture/system-overview.md)
+- [Diagrams → Sequence Diagrams](../diagrams/behavioral/sequence-diagrams.md)
+
+---
+
+[← Back to README](../README.md)

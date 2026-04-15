@@ -1,159 +1,130 @@
 # Data Models
 
-## Shop Module Models
+## Domain Models
 
-### Product (`shop/src/main/java/.../model/Product.java`)
+### Product (shop module — `com.shabushabu.javashop.shop.model.Product`)
+| Field | Type | Access | Description |
+|-------|------|--------|-------------|
+| id | String | private | Product identifier |
+| sku | String | private | Stock keeping unit |
+| name | String | private | Product name |
+| description | String | private | Product description |
+| price | BigDecimal | private | Product price |
+| amountAvailable | int | private | Stock quantity |
+
+### Product (products module — `com.shabushabu.javashop.products.model.Product`)
+| Field | Type | Access | Annotations | Description |
+|-------|------|--------|-------------|-------------|
+| id | String | private | @JsonProperty | Product identifier |
+| name | String | private | @JsonProperty | Product name |
+| description | String | private | @JsonProperty | Product description |
+| price | BigDecimal | private | @JsonProperty | Product price |
+
+### Product (conductors module — `com.shabushabu.javashop.conductors.model.Product`)
+Same schema as products module Product.
+
+### Instrument (shop module — `com.shabushabu.javashop.shop.model.Instrument`)
+| Field | Type | Access | Description |
+|-------|------|--------|-------------|
+| id | long | **public** | Instrument identifier |
+| title | String | **public** | Instrument title |
+| price | String | **public** | Price as string |
+| instrument_type | String | **public** | Type classification |
+| condition | String | **public** | New/Used condition |
+| seller_type | String | **public** | Seller classification |
+| location | String | **public** | Geographic location |
+
+**Note**: Fields are public (anti-pattern — should be private with getters/setters).
+
+### Instrument (instruments module — `com.shabushabu.javashop.instruments.model.Instrument`)
+| Field | Type | Access | Annotations | Description |
+|-------|------|--------|-------------|-------------|
+| id | long | private | @Id, @GeneratedValue | Auto-generated primary key |
+| title | String | private | @Column(nullable=false) | Instrument title |
+| sub_title | String | private | @Column(nullable=false) | Subtitle |
+| price | String | private | @Column(nullable=false) | Price |
+| instrument_type | String | private | @Column(nullable=false) | Type classification |
+| condition | String | private | @Column(nullable=false) | Condition |
+| post_url | String | private | @Column(nullable=false) | Listing URL |
+| seller_type | String | private | @Column(nullable=false) | Seller type |
+| location | String | private | @Column(nullable=false) | Location |
+| published_date | String | private | @Column(nullable=false) | Publication date |
+
+**JPA Mapping**: `@Entity @Table(name = "instruments_for_sale")`
+
+### Stock (stock module — `com.shabushabu.javashop.stock.model.Stock`)
+| Field | Type | Access | Annotations | Description |
+|-------|------|--------|-------------|-------------|
+| productId | String | private | @Id | Product identifier (PK) |
+| sku | String | private | — | Stock keeping unit |
+| amountAvailable | int | private | — | Available quantity |
+
+**JPA Mapping**: `@Entity`
+
+### Stock (instruments module — `com.shabushabu.javashop.instruments.model.Stock`)
+| Field | Type | Access | Annotations | Description |
+|-------|------|--------|-------------|-------------|
+| m_id | String | private | @Id, @Column(name="ID") | Stock identifier |
+| quantity | String | private | @Column(name="Quantity") | Available quantity as string |
+
+**JPA Mapping**: `@Entity @Table(name = "InstrumentStocks")`
+
+## DTO Models (shop module)
+
+### ProductDTO
 | Field | Type | Description |
 |-------|------|-------------|
-| id | String | Product identifier |
-| sku | String | Stock keeping unit |
+| id | String | Product ID |
 | name | String | Product name |
-| description | String | Product description |
-| price | BigDecimal | Product price |
-| amountAvailable | int | Quantity in stock |
+| description | String | Description |
+| price | BigDecimal | Price |
 
-### Instrument (`shop/src/main/java/.../model/Instrument.java`)
+### InstrumentDTO
 | Field | Type | Description |
 |-------|------|-------------|
-| id | long | Instrument identifier |
-| title | String | Instrument title (validated for English characters) |
-| price | String | Price string |
-| instrument_type | String | Type of instrument |
-| condition | String | Condition (New/Used) |
-| seller_type | String | Seller type |
-| location | String | Seller location |
-
-### User (`shop/src/main/java/.../controllers/User.java`)
-| Field | Type | Description |
-|-------|------|-------------|
-| name | String | User display name |
-| location | String | User location |
-
-### ProductDTO (`shop/src/main/java/.../services/dto/ProductDTO.java`)
-| Field | Type | Description |
-|-------|------|-------------|
-| id | String | Product identifier |
-| name | String | Product name |
-| description | String | Product description |
-| price | BigDecimal | Product price |
-
-### StockDTO (`shop/src/main/java/.../services/dto/StockDTO.java`)
-| Field | Type | Description |
-|-------|------|-------------|
-| productId | String | Associated product ID |
-| sku | String | Stock keeping unit |
-| amountAvailable | int | Available quantity |
-
-Static: `DEFAULT_STOCK_DTO = new StockDTO("", "default", 999)`
-
-### InstrumentDTO (`shop/src/main/java/.../services/dto/InstrumentDTO.java`)
-| Field | Type | Description |
-|-------|------|-------------|
-| id | long | Instrument identifier |
-| title | String | Instrument title |
+| id | long | Instrument ID |
+| title | String | Title |
 | sub_title | String | Subtitle |
-| price | String | Price string |
-| instrument_type | String | Type of instrument |
+| price | String | Price |
+| instrument_type | String | Type |
 | condition | String | Condition |
 | post_url | String | Listing URL |
 | seller_type | String | Seller type |
 | location | String | Location |
 | published_date | String | Publication date |
 
-Static: `DEFAULT_INSTRUMENT_DTO` with placeholder values
+**Default**: `DEFAULT_INSTRUMENT_DTO` with ID 9999 and placeholder values.
 
-## Products Module Models
-
-### Product (`products/src/main/java/.../model/Product.java`)
+### StockDTO
 | Field | Type | Description |
 |-------|------|-------------|
-| id | String | Product identifier |
-| name | String | Product name |
-| description | String | Product description |
-| price | BigDecimal | Product price |
-
-Uses `@JsonProperty` annotations for serialization.
-
-## Conductors Module Models
-
-### Product (`conductors/src/main/java/.../model/Product.java`)
-Identical structure to Products module Product. Uses `@JsonProperty` annotations.
-
-### FilteredProducts (`conductors/src/main/java/.../model/FilteredProducts.java`)
-- Method: `filterProducts(String locale)` → returns boolean, throws `InvalidLocaleException` for Oregon
-
-## Instruments Module Models (JPA Entities)
-
-### Instrument (`instruments/src/main/java/.../model/Instrument.java`)
-**Table**: `instruments_for_sale`
-
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| id | long | NO | Primary key (auto-generated) |
-| title | VARCHAR | NO | Instrument title |
-| sub_title | VARCHAR | NO | Subtitle |
-| price | VARCHAR | NO | Price string |
-| instrument_type | VARCHAR | NO | Type of instrument |
-| condition | VARCHAR | NO | Condition (New/Used) |
-| location | VARCHAR | NO | Seller location |
-| post_url | VARCHAR | NO | Listing URL |
-| seller_type | VARCHAR | NO | Seller type |
-| published_date | VARCHAR | NO | Publication date |
-
-### Stock (`instruments/src/main/java/.../model/Stock.java`)
-**Table**: `InstrumentStocks`
-
-| Column | Type | Nullable | Description |
-|--------|------|----------|-------------|
-| ID | String | NO | Primary key |
-| Quantity | String | NO | Stock quantity |
-
-### FilteredInstrument (`instruments/src/main/java/.../model/FilteredInstrument.java`)
-- Method: `filterInstruments(String locale)` → returns boolean, throws `InvalidLocaleException` for Oregon
-
-## Stock Module Models (JPA Entity)
-
-### Stock (`stock/src/main/java/.../model/Stock.java`)
-**Table**: `Stock` (H2, auto-created)
-
-| Column | Type | Description |
-|--------|------|-------------|
-| productId | String | Primary key (`@Id`) |
-| sku | String | Stock keeping unit |
+| productId | String | Product ID |
+| sku | String | SKU |
 | amountAvailable | int | Available quantity |
 
-## Entity Relationship Diagram
+**Default**: `DEFAULT_STOCK_DTO` with empty ID, "default" SKU, and 999 quantity.
 
-```
-┌─────────────────────────────┐
-│  instruments_for_sale       │
-│  (PostgreSQL)               │
-├─────────────────────────────┤
-│  ID (PK)                    │
-│  Title, Sub_title           │
-│  Price, Instrument_Type     │
-│  Condition, Location        │
-│  Post_URL, Seller_type      │
-│  Published_date             │
-└─────────────────────────────┘
+## Utility Models
 
-┌─────────────────────────────┐
-│  instruments_for_sale_chicago│
-│  (PostgreSQL)               │
-├─────────────────────────────┤
-│  [Same schema as above]     │
-└─────────────────────────────┘
+### User (shop module)
+| Field | Type | Description |
+|-------|------|-------------|
+| name | String | User's name |
+| location | String | User's location |
 
-┌─────────────────────────────┐
-│  Stock (H2)                 │
-├─────────────────────────────┤
-│  productId (PK)             │
-│  sku                        │
-│  amountAvailable            │
-└─────────────────────────────┘
-```
+### FilteredProducts (conductors module)
+| Field | Type | Description |
+|-------|------|-------------|
+| s_Localedisabled | boolean (static final) | Flag to disable Oregon locale (always `true`) |
 
-## Cross-References
+### FilteredInstrument (instruments module)
+Same schema and behavior as `FilteredProducts` — validates Oregon locale.
 
-- [Program Structure](program-structure.md) | [Interfaces](interfaces.md) | [API Reference](api-reference.md)
+## Related Documents
+
 - [Database Schemas](../specialized/database-schemas.md)
+- [Interfaces](interfaces.md) | [Program Structure](program-structure.md)
+
+---
+
+[← Back to README](../README.md)

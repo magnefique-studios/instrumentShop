@@ -1,116 +1,93 @@
-# Structural Diagrams
+# Component Diagrams
 
-## Component Diagram
+## Service Relationship Diagram
+
+```mermaid
+graph TD
+    User[👤 User Browser] --> Shop
+
+    subgraph Docker Network: instrument_shop
+        Shop[🛒 Shop<br/>:8010<br/>Spring Boot 1.5.19]
+        Products[📦 Products<br/>:8020<br/>Spring Boot 3.2.2]
+        Conductors[🎵 Conductors<br/>:8050<br/>Spring Boot 3.2.2]
+        Stock[📊 Stock<br/>:8030<br/>Spring Boot 2.1.3]
+        Instruments[🎸 Instruments<br/>:8040<br/>Spring Boot 2.7.5]
+        Postgres[(🐘 PostgreSQL<br/>:5432)]
+        Redis[(Redis)]
+        Tester[🧪 Tester]
+    end
+
+    Shop -->|GET /products| Products
+    Shop -->|GET /conductors<br/>Utah only| Conductors
+    Shop -->|GET /legacy| Stock
+    Shop -->|GET /instruments| Instruments
+    Instruments -->|JDBC| Postgres
+    Tester -->|HTTP traffic| Shop
+```
+
+## ASCII Component Diagram
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                     Docker Network: instrument_shop          │
+┌──────────────────────────────────────────────────────────────┐
+│                  Docker Network: instrument_shop              │
 │                                                              │
-│  ┌──────────────────────────────────────────────────────┐   │
-│  │               SHOP (Gateway) :8010                    │   │
-│  │  ┌────────────┐ ┌──────────┐ ┌──────────────────┐   │   │
-│  │  │HomeCtrl    │ │ProductSvc│ │InstrumentSvc     │   │   │
-│  │  │ProductRes  │ │          │ │                   │   │   │
-│  │  │Exercises   │ │          │ │                   │   │   │
-│  │  └────────────┘ └──────────┘ └──────────────────┘   │   │
-│  │  ┌────────────┐ ┌──────────┐ ┌──────────────────┐   │   │
-│  │  │ProductRepo │ │StockRepo │ │InstrumentRepo    │   │   │
-│  │  │ (REST+RT)  │ │(Hystrix) │ │(Hystrix)         │   │   │
-│  │  └─────┬──────┘ └────┬─────┘ └────────┬─────────┘   │   │
-│  └────────┼──────────────┼────────────────┼─────────────┘   │
-│           │              │                │                  │
-│    ┌──────▼──────┐ ┌────▼──────┐ ┌───────▼──────────┐      │
-│    │  PRODUCTS   │ │  STOCK    │ │  INSTRUMENTS     │      │
-│    │   :8020     │ │  :8030    │ │    :8040         │      │
-│    │ SB 3.2.2    │ │ SB 2.1.3 │ │  SB 2.7.5       │      │
-│    │ Java 17     │ │ Java 8   │ │  Java 17         │      │
-│    │             │ │           │ │                   │      │
-│    │ ProductCtrl │ │ StockRes  │ │ InstrumentRes    │      │
-│    │ ProductSvc  │ │ StockSvc  │ │ InstrumentSvc   │      │
-│    │ FilterSvc   │ │ DataGen   │ │ FindInstRepoImpl│      │
-│    │ [in-memory] │ │ [H2 DB]  │ │ [JPA/Hibernate] │      │
-│    └─────────────┘ └──────────┘ └────────┬──────────┘      │
+│  ┌─────────┐    ┌──────────┐    ┌────────────┐              │
+│  │  Redis   │    │  Tester  │───▶│    Shop    │              │
+│  │ (cache)  │    │          │    │  :8010     │              │
+│  └─────────┘    └──────────┘    │  SB 1.5.19 │              │
+│                                  └──┬──┬──┬──┘              │
+│                     ┌───────────────┘  │  │  └──────┐       │
+│                     ▼                  ▼  │         ▼       │
+│              ┌──────────┐    ┌────────┐│  │  ┌───────────┐  │
+│              │ Products │    │ Stock  ││  │  │Instruments│  │
+│              │  :8020   │    │ :8030  ││  │  │  :8040    │  │
+│              │ SB 3.2.2 │    │SB 2.1.3││  │  │ SB 2.7.5 │  │
+│              └──────────┘    │  [H2]  ││  │  └─────┬─────┘  │
+│                              └────────┘│  │        │        │
+│              ┌──────────┐              │  │        ▼        │
+│              │Conductors│◀─────────────┘  │  ┌──────────┐   │
+│              │  :8050   │  (Utah only)    │  │PostgreSQL│   │
+│              │ SB 3.2.2 │                 │  │  :5432   │   │
+│              └──────────┘                 │  └──────────┘   │
 │                                           │                  │
-│    ┌─────────────┐                 ┌──────▼──────────┐      │
-│    │ CONDUCTORS  │                 │  PostgreSQL     │      │
-│    │   :8050     │                 │    :5432        │      │
-│    │ SB 3.2.2    │                 │   13.1-alpine   │      │
-│    │ Java 17     │                 └─────────────────┘      │
-│    │ [in-memory] │                                          │
-│    └─────────────┘       ┌───────────┐                      │
-│                          │   Redis   │                      │
-│                          │ (unused)  │                      │
-│                          └───────────┘                      │
-└─────────────────────────────────────────────────────────────┘
+│  ┌──────────┐                             │                  │
+│  │Annotator │ (standalone CLI tool)       │                  │
+│  │ Java 17  │                             │                  │
+│  └──────────┘                             │                  │
+└──────────────────────────────────────────────────────────────┘
 ```
 
-## Class Diagram — Shop Module (Key Classes)
+## Class Dependency Diagram (Shop Module)
 
-```
-┌────────────────────────┐
-│    «@Controller»       │
-│    HomeController      │
-├────────────────────────┤
-│ - productService       │──────▶ ProductService
-│ - instrumentService    │──────▶ InstrumentService
-├────────────────────────┤
-│ + getProductsAllLocs() │
-│ + getScores()          │
-│ + healthCheck()        │
-│ - allParameters()      │
-│ - checkIfRestricted()  │
-└────────────────────────┘
+```mermaid
+classDiagram
+    JavaShopApp --> HomeController
+    JavaShopApp --> RestTemplate
 
-┌────────────────────────┐     ┌──────────────────┐
-│    «@Service»          │     │   «@Component»   │
-│    ProductService      │────▶│   ProductRepo    │
-├────────────────────────┤     ├──────────────────┤
-│ - stockRepo            │     │ + getProductDTOs()│
-│ - productRepo          │     │ [Utah→Conductors] │
-├────────────────────────┤     │ [else→Products]   │
-│ + getProducts(loc)     │     └──────────────────┘
-│ + productsNotFound()   │
-└────────────────────────┘     ┌──────────────────┐
-                               │   «@Component»   │
-┌────────────────────────┐     │   StockRepo      │
-│    «@Service»          │────▶├──────────────────┤
-│    InstrumentService   │     │ @HystrixCommand  │
-├────────────────────────┤     │ + getStockDTOs() │
-│ - instrumentRepo       │     │ + stocksNotFound()│
-├────────────────────────┤     └──────────────────┘
-│ + getInstruments(loc)  │
-└────────────────────────┘     ┌──────────────────┐
-                               │   «@Component»   │
-                               │   InstrumentRepo │
-                               ├──────────────────┤
-                               │ @HystrixCommand  │
-                               │ + getinstrumentDTOs()│
-                               │ + instrumentsNotFound()│
-                               └──────────────────┘
+    HomeController --> ProductService
+    HomeController --> InstrumentService
+    HomeController --> Exercises
+    HomeController --> PropertiesUpdater
+    HomeController --> User
+
+    ProductService --> ProductRepo
+    ProductService --> StockRepo
+    ProductService --> ProductDTO
+    ProductService --> StockDTO
+
+    InstrumentService --> InstrumentRepo
+    InstrumentService --> InstrumentDTO
+
+    ProductRepo --> RestTemplate
+    StockRepo --> RestTemplate
+    InstrumentRepo --> RestTemplate
 ```
 
-## Package Dependency Graph
+## Related Documents
 
-```
-shop
- ├── controllers  ──▶  services  ──▶  repo
- │                     services  ──▶  model
- │                     repo      ──▶  services.dto
- └── Exercises    ──▶  controllers
+- [Architecture → System Overview](../architecture/system-overview.md)
+- [Sequence Diagrams](../diagrams/behavioral/sequence-diagrams.md)
 
-products
- └── controllers  ──▶  services  ──▶  model
+---
 
-instruments
- └── resources    ──▶  services  ──▶  repositories  ──▶  model
-
-stock
- └── resources    ──▶  services  ──▶  repositories  ──▶  model
-     config       ──▶  repositories
-```
-
-## Cross-References
-
-- [Behavioral Diagrams](../behavioral/sequence-diagrams.md)
-- [Architecture Diagrams](../architecture/system-context.md)
-- [System Overview](../../architecture/system-overview.md)
+[← Back to README](../../README.md)

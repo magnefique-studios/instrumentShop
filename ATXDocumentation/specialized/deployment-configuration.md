@@ -1,88 +1,74 @@
 # Deployment Configuration
 
-## Docker Compose Architecture
+## Docker Compose Services
 
-**File**: `docker-compose.yml`
+**Source**: `docker-compose.yml`
 
-### Services
+| Service | Image | Port | Build Context | Health Check |
+|---------|-------|------|--------------|-------------|
+| shop | shabushabu/javashop.shop:latest | 8010:8010 | ./shop | `curl http://localhost:8010/healthcheck` |
+| products | shabushabu/javashop.products:latest | 8020:8020 | ./products | `curl http://localhost:8020/products/healthcheck` |
+| conductors | shabushabu/javashop.conductors:latest | 8050:8050 | ./conductors | `curl http://localhost:8050/conductors/healthcheck` |
+| stock | shabushabu/javashop.stock:latest | 8030:8030 | ./stock | `curl http://localhost:8030/healthcheck` |
+| instruments | shabushabu/javashop.instruments:latest | 8040:8040 | ./instruments | `curl http://localhost:8040/healthcheck` |
+| postgresDB | postgres:13.1-alpine | 5432:5432 | — | `pg_isready` |
+| redis | redis | (default) | — | — |
+| shoptester | shabushabu/javashop.tester:latest | — | ./test | — |
 
-| Service | Image | Port | Network | Dependencies |
-|---------|-------|------|---------|--------------|
-| shop | `shabushabu/javashop.shop:latest` | 8010:8010 | instrument_shop | products, stock, instruments |
-| products | `shabushabu/javashop.products:latest` | 8020:8020 | instrument_shop | — |
-| conductors | `shabushabu/javashop.conductors:latest` | 8050:8050 | instrument_shop | — |
-| stock | `shabushabu/javashop.stock:latest` | 8030:8030 | instrument_shop | — |
-| instruments | `shabushabu/javashop.instruments:latest` | 8040:8040 | instrument_shop | postgresDB (healthy) |
-| postgresDB | `postgres:13.1-alpine` | 5432:5432 | instrument_shop | — |
-| redis | `redis` | — | instrument_shop | — |
-| shoptester | `shabushabu/javashop.tester:latest` | — | instrument_shop | shop |
+## Health Check Configuration (All Services)
 
-### Health Checks
-
-All application services have health checks configured:
 ```yaml
 healthcheck:
-  test: curl -sS http://localhost:{port}/healthcheck | grep -c 200 > /dev/null
   interval: 2s
   retries: 5
   start_period: 5s
   timeout: 2s
 ```
 
-PostgreSQL uses:
-```yaml
-healthcheck:
-  test: ["CMD-SHELL", "pg_isready"]
-  interval: 2s
-  timeout: 2s
-  retries: 5
-```
+## Environment Variables
 
-### Environment Variables
+### Shop Service
+- `USERNAME=${SHOP_USER}` — User identification
 
-| Variable | Service | Purpose |
-|----------|---------|---------|
-| `USERNAME` / `SHOP_USER` | All | User identification |
-| `SPRING_DATASOURCE_URL` | instruments | PostgreSQL connection URL |
-| `SPRING_DATASOURCE_USERNAME` | instruments | DB username ("instruments") |
-| `SPRING_DATASOURCE_PASSWORD` | instruments | DB password ("instruments") |
-| `SPRING_JPA_HIBERNATE_DDL_AUTO` | instruments | DDL strategy ("update") |
+### Instruments Service
+- `USERNAME=${SHOP_USER}`
+- `SPRING_DATASOURCE_URL=jdbc:postgresql://postgresDB:5432/instruments`
+- `SPRING_DATASOURCE_USERNAME=instruments`
+- `SPRING_DATASOURCE_PASSWORD=instruments`
+- `SPRING_JPA_HIBERNATE_DDL_AUTO=update`
 
-### Volumes
+### PostgreSQL
+- `POSTGRES_USER=instruments`
+- `POSTGRES_PASSWORD=instruments`
+
+## Volume Mounts
 
 | Service | Source | Target | Purpose |
 |---------|--------|--------|---------|
-| shop | `./shop/data` | `/container/shop/data` | Exercise properties files |
-| shoptester | `./test/data` | `/container/test/data` | Test data |
-| postgresDB | `./db/sql/instruments-latest.sql` | `/docker-entrypoint-initdb.d/` | DB init |
-| postgresDB | `./db/sql/instruments-chicago.sql` | `/docker-entrypoint-initdb.d/` | DB init |
+| shop | ./shop/data | /container/shop/data | Properties files for exercises |
+| shoptester | ./test/data | /container/test/data | Test data |
+| postgresDB | ./db/sql/instruments-latest.sql | /docker-entrypoint-initdb.d/ | Initial data load |
+| postgresDB | ./db/sql/instruments-chicago.sql | /docker-entrypoint-initdb.d/ | Chicago data load |
 
-### Network
+## Service Dependencies
 
-- **Network Name**: `instrument_shop`
+| Service | Depends On | Condition |
+|---------|-----------|-----------|
+| shop | products, stock, instruments | links |
+| instruments | postgresDB | service_healthy |
+| shoptester | shop | links |
+
+## Network
+
+- **Network name**: `instrument_shop`
 - **Type**: External (must be created before `docker-compose up`)
-- **Creation**: `docker network create instrument_shop`
+- All services share this network for DNS-based service discovery
 
-## Build Scripts
+## Related Documents
 
-| Script | Purpose |
-|--------|---------|
-| `BuildAndDeploy.sh` | Build all modules and deploy via Docker |
-| `BuildAndDeployNoSudo.sh` | Build and deploy without sudo |
-| `BuildOnly.sh` | Build modules only (no deploy) |
-| `AutomateManualInstrumentation.sh` | Run annotator to add OTel annotations |
-| `CleanUpAnnotations.sh` | Remove OTel annotations |
-| `send_traffic.sh` | Generate test traffic |
-| `all_tests.sh` | Run all tests |
+- [Architecture → System Overview](../architecture/system-overview.md)
+- [Diagrams → System Context](../diagrams/architecture/system-context.md)
 
-## Commented-Out Configurations
+---
 
-The docker-compose.yml contains significant commented-out configuration for:
-- **Datadog Agent**: Full agent configuration with APM, logs, and monitoring
-- **Service labels**: Datadog log source labels
-- **DD_INSTRUMENT_SERVICE_WITH_APM**: Datadog APM flag on all services
-
-## Cross-References
-
-- [System Overview](../architecture/system-overview.md)
-- [Component Details](../architecture/components.md)
+[← Back to README](../README.md)

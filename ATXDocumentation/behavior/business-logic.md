@@ -2,88 +2,117 @@
 
 # Business Logic
 
-## Shop Module
+## Shop Module — HomeController
 
-### HomeController (`shop/src/main/java/.../controllers/HomeController.java`)
-- **Main Page (`/`)**: Accepts `name`, `location`, and `userid` parameters. Defaults: name="Guest", location="California", userid="X0000"
-- Increments trace counter via `Exercises.incrementTracesSent()`
-- Validates user permissions via `allParameters()` → `checkIfRestricted()` (currently always returns false; HTTP permission check is commented out)
-- Creates a `User` object with name and location
-- Retrieves products via `productService.getProducts(location)` and tracks latency
-- Tracks Colorado and Utah latency separately (`s_coloradoLatency`, `s_utahLatency` static fields)
-- Retrieves instruments via `instrumentService.getInstruments(location)`
-- Returns Thymeleaf "index" template
+### Product Retrieval by Location
+- **Source**: `HomeController.getProductsAllLocations()` (line ~33, `shop/src/main/java/.../controllers/HomeController.java`)
+- Default user name: "Guest", default location: "California", default userid: "X0000"
+- Calls `productService.getProducts(location)` which delegates to `ProductRepo`
+- Calls `instrumentService.getInstruments(location)` for instruments
+- Tracks latency for Utah and Colorado locations using static fields `s_utahLatency` and `s_coloradoLatency`
 
-### Exercise Scoring (`/score`)
-- Accepts `exercise` number and `data` string parameters
-- If exercise=0, returns all scores via `PropertiesUpdater.getListOfScores()`
-- For exercises 1-15, delegates to `Exercises.checkExercise()` which uses a switch statement
-- Exercises validate workshop progress (e.g., trace sending, service discovery, annotation usage)
+### Location-Based Product Routing (ProductRepo)
+- **Source**: `ProductRepo.getProductDTOs()` (line ~37, `shop/src/main/java/.../repo/ProductRepo.java`)
+- If `bConductorsEnabled` is `true` AND location is "Utah" → calls `conductors` service
+- Otherwise → calls `products` service
+- `bConductorsEnabled` is a static boolean, always `true`
 
-### ProductService (`shop/src/main/java/.../services/ProductService.java`)
-- `getProducts(location)`: Merges `ProductDTO` (from Products/Conductors service) with `StockDTO` (from Stock service) into unified `Product` objects
-- Uses Java Streams to map and join data by product ID
-- Falls back to `DEFAULT_STOCK_DTO` (sku="default", amount=999) when stock data is missing
+### Instrument Retrieval with Locale Filtering
+- **Source**: `InstrumentService.getInstruments()` (line ~28, `shop/src/main/java/.../services/InstrumentService.java`)
+- Fetches instruments by location from InstrumentRepo
+- For each InstrumentDTO, attempts `buildForLocale()` which checks `isEnglish(title)` using regex
+- If `isEnglish` fails, falls back to `buildIt()` (without title)
+- Note: The `isEnglish` check is commented out (throw is disabled), so non-English titles are accepted
 
-### InstrumentService (`shop/src/main/java/.../services/InstrumentService.java`)
-- `getInstruments(location)`: Retrieves instruments by location from Instruments service
-- Maps `InstrumentDTO` to `Instrument` using `buildForLocale()` which validates English locale
-- On `InvalidLocaleException`, falls back to `buildIt()` (without title field)
+### Stock Aggregation
+- **Source**: `ProductService.getProducts()` (line ~24, `shop/src/main/java/.../services/ProductService.java`)
+- Merges `ProductDTO` data from products service with `StockDTO` data from stock service
+- If no stock entry found for a product, uses `DEFAULT_STOCK_DTO` (SKU "default", quantity 999)
 
-## Products Module
+### User Permission Checking
+- **Source**: `HomeController.allParameters()` / `checkIfRestricted()` (line ~95, `shop/src/main/java/.../controllers/HomeController.java`)
+- Calls `checkIfRestricted(userid)` — currently always returns `false` (HTTP call is commented out)
+- If restricted, throws `NoPermissionException`
 
-### ProductController (`products/src/main/java/.../controllers/ProductController.java`)
-- `getProductsByLocation(location)`: Defaults location to "California" if null
-- Instantiates `ProductService` and `ProductFilterService` (not Spring-managed — direct instantiation)
-- Delegates to `ProductFilterService.filterAllProducts(location, service)`
+### Exercise Scoring System
+- **Source**: `Exercises.checkExercise()` (line ~52, `shop/src/main/java/.../Exercises.java`)
+- 15 exercises for APM training, each validated differently
+- Exercises check for: access tokens, trace counts, latency patterns, annotation presence, custom function names
+- Scores persisted via `PropertiesUpdater` to file-based properties
 
-### ProductService (`products/src/main/java/.../services/ProductService.java`)
-- Contains hardcoded product catalog with 5 items: Widget ($1.20), Sprocket ($4.10), Anvil ($45.50), Cogs ($1.80), Multitool ($154.10)
-- `getAllProducts()`: Returns all products from in-memory HashMap
-- `getProduct(id)`: Returns Optional product by ID
+### Latency Tracking
+- **Source**: `HomeController.getProductsAllLocations()` (line ~60)
+- For Utah: records max latency in `s_utahLatency`, resets Colorado latency to 0
+- For Colorado: records max latency in `s_coloradoLatency`
+- Exercise 4 checks if Colorado latency > 1.2× Utah latency (detecting intentional slowdown)
 
-### ProductFilterService (`products/src/main/java/.../services/ProductFilterService.java`)
-- `filterAllProducts(location, productService)`: **Workshop simulation method** — calls 100+ `myCoolFunction*()` variants before returning `productService.getAllProducts()`
-- For "Colorado" location, `locationLookup11()` triggers `myCoolFunction234234234()` which introduces **966-1166ms random latency** via `Thread.sleep()`
-- Most `myCoolFunction*()` calls perform 0-8ms Thread.sleep() with no business logic
+---
 
-## Conductors Module
+## Products Module — ProductFilterService
 
-### ConductorsController (`conductors/src/main/java/.../controllers/ConductorsController.java`)
-- `getProductsByLocation(location)`: **Hardcodes location to "Oregon"** regardless of input parameter
-- Instantiates `ConductorsService` and `ProductFilterService` directly
-- Calls `FilteredProducts.filterProducts("Oregon")` which throws `InvalidLocaleException` (Oregon is disabled)
-- Exception is silently caught; proceeds to return `serviceFilter.filterAllProducts(location, service)`
-- Note: Since location is hardcoded to Oregon and Oregon locale is disabled, the FilteredProducts check always throws but is ignored
+### Product Filtering Pipeline
+- **Source**: `ProductFilterService.filterAllProducts()` (line ~20, `products/src/main/java/.../services/ProductFilterService.java`)
+- Calls 50+ `myCoolFunction*()` methods sequentially before returning products
+- Most functions contain `Thread.sleep()` with small values (0-8ms)
+- **Intentional Bug**: `locationLookup11("Colorado")` triggers `myCoolFunction234234234(999)` which sleeps 966-1166ms (random)
+- The magic number `999` is returned by `getMyInt()` and triggers the long sleep
 
-### ConductorsService
-- Identical product catalog to `ProductService` (same 5 products)
+### In-Memory Product Data
+- **Source**: `ProductService` constructor (line ~12, `products/src/main/java/.../services/ProductService.java`)
+- 5 hardcoded products: Widget ($1.20), Sprocket ($4.10), Anvil ($45.50), Cogs ($1.80), Multitool ($154.10)
 
-## Instruments Module
+---
 
-### InstrumentService (`instruments/src/main/java/.../services/InstrumentService.java`)
-- `getInstruments(location)`: Core business logic:
-  1. Creates `FilteredInstrument` and calls `filterInstruments(location)` — returns false for Oregon (throws InvalidLocaleException)
-  2. If filter returns false, returns empty list
-  3. For "Chicago" location: calls `instrumentRepo.findInstruments()` which performs cross-table query, then still returns `findAll()` results if query succeeded
-  4. For all other locations: returns all instruments via `instrumentRepo.findAll()`
+## Conductors Module — ConductorsController
 
-### FilteredInstrument (`instruments/src/main/java/.../model/FilteredInstrument.java`)
-- `filterInstruments(locale)`: Returns true for all locales except "Oregon" (throws `InvalidLocaleException` when Oregon locale is disabled — which is always, since `s_Localedisabled = true`)
+### Oregon Location Override
+- **Source**: `ConductorsController.getProductsByLocation()` (line ~21, `conductors/src/main/java/.../controllers/ConductorsController.java`)
+- Incoming `location` parameter is **overridden** to `"Oregon"` on every request
+- `FilteredProducts.filterProducts("Oregon")` throws `InvalidLocaleException` (Oregon is disabled)
+- Exception is caught by empty catch block — products are returned normally from `ProductFilterService`
+- ProductFilterService in conductors has all filtering **commented out** — just returns products directly
 
-## Stock Module
+---
 
-### StockService (`stock/src/main/java/.../services/StockService.java`)
-- `getStocks()`: Returns all stocks via `stockRepository.findAll()` using Spring Data CrudRepository
+## Instruments Module — InstrumentService
 
-### InstrumentStocksService (`stock/src/main/java/.../services/InstrumentStocksService.java`)
-- `getStocks()`: Returns all instrument stocks
-- `getStock(productId)`: Currently returns `null` (implementation commented out)
+### Location-Based Instrument Retrieval
+- **Source**: `InstrumentService.getInstruments()` (line ~29, `instruments/src/main/java/.../services/InstrumentService.java`)
+- Applies locale filter via `FilteredInstrument.filterInstruments(location)`
+- If Oregon → throws `InvalidLocaleException` (caught, logs error, returns empty list)
+- If Chicago → executes `findInstruments()` (Cartesian product), then falls back to `findAll()`
+- All other locations → standard `findAll()` from JPA repository
 
-### DataGenerator (`stock/src/main/java/.../config/DataGenerator.java`)
-- `@PostConstruct` method generates 5 synthetic stock records: products 1-5 with SKUs and quantities (5, 2, 999, 0, 1)
+### Health Check Endpoints
+- All services expose a `/healthcheck` endpoint returning HTTP 200
+- Docker Compose health checks poll these endpoints every 2 seconds
 
-## Cross-References
+---
+
+## Stock Module — DataGenerator
+
+### Synthetic Data Generation
+- **Source**: `DataGenerator.init()` (line ~26, `stock/src/main/java/.../config/DataGenerator.java`)
+- On startup, generates 5 stock records: productIds 1-5, various SKUs, quantities 0-999
+
+---
+
+## Annotator Module — OpenTelemetryAnnotator
+
+### Automatic OTel Annotation
+- **Source**: `OpenTelemetryAnnotator.annotateCodebase()` (line ~50, `annotator/src/main/java/.../OpenTelemetryAnnotator.java`)
+- Walks directory tree, finds `.java` files
+- Parses each file with JavaParser, visits all MethodDeclarations
+- Adds `@WithSpan` annotation to methods (excluding main, setters, most getters, health checks)
+- Adds `@SpanAttribute` annotation to all method parameters
+- Adds OpenTelemetry import statements
+- Renames original file to `.javaOLD`, writes annotated version
+
+## Related Documents
 
 - [Workflows](workflows.md) | [Decision Logic](decision-logic.md) | [Error Handling](error-handling.md)
-- [Component Details](../architecture/components.md)
+- [Architecture → Components](../architecture/components.md)
+
+---
+
+[← Back to README](../README.md)

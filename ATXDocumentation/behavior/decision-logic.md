@@ -2,83 +2,154 @@
 
 # Decision Logic
 
-## Decision Point 1: Location-Based Service Routing
-- **Location**: `shop/src/main/java/.../repo/ProductRepo.java` line 38
-- **Logic**: If `bConductorsEnabled` is true AND location equals "Utah" (case-insensitive) → route to Conductors service; otherwise → route to Products service
-- **Current State**: `bConductorsEnabled` is hardcoded to `true`
+## Decision Point 1: Product Service Routing (Shop → Products vs. Conductors)
+
+**Location**: `ProductRepo.getProductDTOs()` — `shop/src/main/java/.../repo/ProductRepo.java`, line ~37
 
 ```
-location == "Utah"?
-  ├── YES → GET conductors:8050/conductors?location=Utah
-  └── NO  → GET products:8020/products?location={location}
+IF bConductorsEnabled == true AND location equalsIgnoreCase "Utah"
+  THEN → HTTP GET conductors:8050/conductors?location=Utah
+  ELSE → HTTP GET products:8020/products?location={location}
 ```
 
-## Decision Point 2: Oregon Locale Filter (Instruments)
-- **Location**: `instruments/src/main/java/.../model/FilteredInstrument.java` lines 15-31
-- **Logic**: If locale equals "Oregon" (case-insensitive) AND `s_Localedisabled` is true → throw `InvalidLocaleException`; otherwise → return true
-- **Current State**: `s_Localedisabled` is hardcoded to `true`, so Oregon always throws
+- `bConductorsEnabled` is `static boolean = true` (always enabled)
+- Only Utah routes to the conductors service; all other locations go to products
+
+---
+
+## Decision Point 2: Colorado Latency Injection (Products/Conductors)
+
+**Location**: `ProductFilterService.locationLookup11()` — `products/src/main/java/.../services/ProductFilterService.java`, line ~441
 
 ```
-locale == "Oregon"?
-  ├── YES → s_Localedisabled?
-  │         ├── YES → throw InvalidLocaleException
-  │         └── NO  → return true
-  └── NO  → return true
+IF location equalsIgnoreCase "Colorado"
+  THEN → call myCoolFunction234234234(getMyInt(location))
+    IF 999 == myInt
+      THEN → Thread.sleep(random(200) + 966)   // 966-1166ms delay
 ```
 
-## Decision Point 3: Oregon Locale Filter (Conductors)
-- **Location**: `conductors/src/main/java/.../model/FilteredProducts.java` lines 15-31
-- **Logic**: Identical to instruments' FilteredInstrument — throws for Oregon when disabled
-- **Note**: ConductorsController hardcodes location to "Oregon", so this always throws (but is silently caught)
+- `getMyInt()` always returns `999`, so the delay always triggers for Colorado
+- This is an intentional performance bug for APM training exercises
 
-## Decision Point 4: Chicago-Specific Database Query
-- **Location**: `instruments/src/main/java/.../services/InstrumentService.java` lines 41-52
-- **Logic**: If location equals "Chicago" (case-insensitive) → execute `findInstruments()` (cross-table native query), then still return `findAll()` results; otherwise → return `findAll()` directly
+---
 
-```
-location == "Chicago"?
-  ├── YES → findInstruments() [cross-table query for side effect]
-  │         → findAll() [return all instruments]
-  └── NO  → findAll() [return all instruments]
-```
+## Decision Point 3: Chicago-Specific Query Path (Instruments)
 
-## Decision Point 5: English Locale Validation (Shop Instrument Model)
-- **Location**: `shop/src/main/java/.../model/Instrument.java` lines 18-22
-- **Logic**: `buildForLocale()` checks if title matches English character regex
-- **Current State**: The `InvalidLocaleException` throw is commented out, so non-English titles are accepted silently
-
-## Decision Point 6: User Permission Check
-- **Location**: `shop/src/main/java/.../controllers/HomeController.java` lines 92-128
-- **Logic**: `allParameters()` calls `checkIfRestricted(userid)` → if true, throws `NoPermissionException`
-- **Current State**: `checkIfRestricted()` always returns false (HTTP call is commented out)
-
-## Decision Point 7: Default Parameter Values
-- **Location**: `shop/src/main/java/.../controllers/HomeController.java` lines 37-48
-- **Logic**:
-  - `name` is null → default to "Guest"
-  - `location` is null → default to "California"
-  - `userid` is null → default to "X0000"
-
-## Decision Point 8: Product-Stock Merge Fallback
-- **Location**: `shop/src/main/java/.../services/ProductService.java` lines 27-33
-- **Logic**: If no `StockDTO` found for a product → use `DEFAULT_STOCK_DTO` (sku="default", amount=999)
-
-## Decision Point 9: Colorado Latency Injection
-- **Location**: `products/src/main/java/.../services/ProductFilterService.java` → `locationLookup11()` → `myCoolFunction234234234()`
-- **Logic**: If location equals "Colorado" → call `getMyInt()` (returns 999) → `myCoolFunction234234234(999)` → `Thread.sleep(random(200) + 966)` introducing 966-1166ms latency
+**Location**: `InstrumentService.getInstruments()` — `instruments/src/main/java/.../services/InstrumentService.java`, line ~39
 
 ```
-location == "Colorado"?
-  ├── YES → getMyInt() returns 999
-  │         → myCoolFunction234234234(999)
-  │         → Thread.sleep(966 + random(200))
-  └── NO  → return sleepy=1 (minimal delay)
+IF location equalsIgnoreCase "Chicago"
+  THEN → execute findInstruments() (Cartesian product query)
+    IF result is null OR not a List
+      THEN → return null
+      ELSE → return findAll() (standard JPA query)
+  ELSE → return findAll() (standard JPA query)
 ```
 
-## Decision Point 10: Exercise Scoring Switch
-- **Location**: `shop/src/main/java/.../Exercises.java` lines 52-95
-- **Logic**: 15-case switch statement delegating to various check methods based on exercise number
+- Chicago triggers a deliberately expensive cross-join query before falling back to normal results
 
-## Cross-References
+---
+
+## Decision Point 4: Oregon Locale Validation (Instruments & Conductors)
+
+**Location**: `FilteredInstrument.filterInstruments()` — `instruments/src/main/java/.../model/FilteredInstrument.java`, line ~18
+
+```
+IF locale equalsIgnoreCase "Oregon"
+  IF s_Localedisabled == true   // always true
+    THEN → throw InvalidLocaleException("Trying to filter to disabled Region: Oregon")
+  ELSE
+    THEN → return true (allow Oregon data)
+```
+
+- Same logic exists in `conductors/model/FilteredProducts.filterProducts()`
+- Oregon is always disabled (`s_Localedisabled = true`)
+
+---
+
+## Decision Point 5: Hystrix Fallback Decisions (Shop)
+
+**Location**: `StockRepo.getStockDTOs()`, `InstrumentRepo.getinstrumentDTOs()` — shop module
+
+```
+IF HTTP call to downstream service fails (timeout, connection error, etc.)
+  THEN → Hystrix triggers fallback method
+    StockRepo → stocksNotFound() → returns Collections.emptyMap()
+    InstrumentRepo → instrumentsNotFound() → returns Collections.emptyMap()
+```
+
+- Fallbacks return empty collections, allowing the shop to render without stock/instrument data
+
+---
+
+## Decision Point 6: Instrument Locale Check (Shop)
+
+**Location**: `Instrument.buildForLocale()` — `shop/src/main/java/.../model/Instrument.java`, line ~69
+
+```
+IF NOT isEnglish(title)
+  THEN → (throw commented out — no action taken)
+ELSE
+  THEN → (no action — continue building instrument)
+```
+
+- The `isEnglish` regex check exists but the `throw` is commented out
+- Non-English titles are silently accepted
+
+---
+
+## Decision Point 7: User Permission Check (Shop)
+
+**Location**: `HomeController.allParameters()` → `checkIfRestricted()` — line ~95
+
+```
+IF checkIfRestricted(userid) == true
+  THEN → throw NoPermissionException("User does not have permissions")
+ELSE
+  THEN → continue processing
+```
+
+- `checkIfRestricted()` always returns `false` (HTTP call to Lambda is commented out)
+
+---
+
+## Decision Point 8: Default Parameter Assignment (Shop)
+
+**Location**: `HomeController.getProductsAllLocations()` — line ~35
+
+```
+IF name == null    → name = "Guest"
+IF location == null → location = "California"
+IF userid == null   → userid = "X0000"
+```
+
+---
+
+## Decision Point 9: Conductors Location Override
+
+**Location**: `ConductorsController.getProductsByLocation()` — line ~21
+
+```
+ALWAYS → location = "Oregon"    // incoming parameter is discarded
+```
+
+- Regardless of what location is passed, Oregon is always used
+
+---
+
+## Decision Point 10: Stock Default Value (Shop)
+
+**Location**: `ProductService.getProducts()` — line ~30
+
+```
+IF stockDTO == null (no matching stock for product)
+  THEN → use DEFAULT_STOCK_DTO (sku="default", amountAvailable=999)
+```
+
+## Related Documents
 
 - [Business Logic](business-logic.md) | [Workflows](workflows.md) | [Error Handling](error-handling.md)
+
+---
+
+[← Back to README](../README.md)

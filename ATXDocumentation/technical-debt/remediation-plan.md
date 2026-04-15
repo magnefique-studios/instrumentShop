@@ -1,119 +1,128 @@
 # Remediation Plan
 
-## Priority 1: Critical Security (High Severity)
+## Prioritized Action Items
 
-### 1.1 Upgrade Log4j 2.6.1 → 2.23+ (or migrate to SLF4J/Logback)
-- **Modules**: shop, test
-- **Rationale**: CVE-2021-44228 (Log4Shell) enables remote code execution
-- **Action**: Update `log4j-api` and `log4j-core` versions in `shop/pom.xml` and `test/pom.xml` to 2.23+, or use `AWS/early-access-log4j-to-slf4j-migration` transformation to migrate to SLF4J with Logback
-- **Complexity**: Low (version bump) to Medium (full migration to SLF4J)
+Issues are prioritized by severity and impact. No time estimates are provided — only qualitative effort descriptors.
 
-### 1.2 Fix SQL Injection in FindInstrumentRepositoryImpl
-- **Module**: instruments
-- **File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java` line 33
+---
+
+### Priority 1: Critical Security Fixes — Severity: High
+
+#### 1.1 Upgrade Log4j 2.6.1 in `shop` module
+- **Current**: Log4j 2.6.1 (log4j-api, log4j-core)
+- **Target**: Latest Log4j 2.x or migrate to SLF4J/Logback
+- **Effort**: Low complexity — dependency version update, verify logging configuration
+- **Risk if deferred**: Active exploitation of Log4Shell CVE-2021-44228
+- **AWS Transformation**: Use `AWS/early-access-log4j-to-slf4j-migration` to migrate to SLF4J
+
+#### 1.2 Fix SQL injection in `instruments` module
+- **File**: `FindInstrumentRepositoryImpl.findInstrumentByID()`
 - **Current**: `"FROM instruments i WHERE i.ID = " + id.toString()`
-- **Action**: Use parameterized queries: `entityManager.createQuery("FROM Instrument i WHERE i.id = :id").setParameter("id", id)`
-- **Complexity**: Low
+- **Fix**: Use parameterized queries (`setParameter()`) or Spring Data JPA derived query methods
+- **Effort**: Low complexity — single method change
 
-## Priority 2: EOL Framework Upgrades (High Severity)
+---
 
-### 2.1 Upgrade Shop Module: Spring Boot 1.5.19 → 3.x
-- **Complexity**: High
-- **Steps**:
-  1. Upgrade Java target from 8 to 17+
-  2. Upgrade Spring Boot 1.5 → 2.x → 3.x
-  3. Migrate Spring Cloud Dalston → 2022.x+
-  4. Replace Hystrix with Resilience4j / Spring Cloud Circuit Breaker
-  5. Migrate javax.* imports to jakarta.*
-  6. Update Thymeleaf configuration (remove LEGACYHTML5 mode, drop nekohtml)
-  7. Verify RestTemplate usage (consider WebClient for reactive)
+### Priority 2: EOL Runtime Upgrades — Severity: High
 
-### 2.2 Upgrade Stock Module: Spring Boot 2.1.3 → 3.x
-- **Complexity**: Medium
-- **Steps**:
-  1. Upgrade Java target from 8 to 17+
-  2. Upgrade Spring Boot 2.1 → 3.x
-  3. Migrate javax.persistence → jakarta.persistence
-  4. Migrate javax.validation → jakarta.validation
-  5. Migrate javax.annotation → jakarta.annotation (PostConstruct)
-  6. Update Cucumber from info.cukes 1.2.5 to io.cucumber 7.x
-  7. Update H2 database driver if needed
+#### 2.1 Upgrade `shop` module from Spring Boot 1.5.x to 3.x
+- **Current**: Spring Boot 1.5.19.RELEASE, Java 1.8, Spring Cloud Dalston, Hystrix
+- **Target**: Spring Boot 3.2.x, Java 17+
+- **Effort**: High complexity — most complex module due to Spring Cloud dependencies
+- **Key changes required**:
+  - Migrate from Java 8 to Java 17+
+  - Migrate Spring Cloud Dalston → latest Spring Cloud release
+  - Replace Hystrix with Resilience4j
+  - Migrate `javax.*` → `jakarta.*` namespace
+  - Update RestTemplate usage (or migrate to WebClient)
+  - Update Thymeleaf configuration (remove LEGACYHTML5 mode)
+  - Remove NekoHTML dependency (no longer needed with modern Thymeleaf)
+- **AWS Transformation**: Use `AWS/java-version-upgrade` to upgrade Java and Spring Boot
 
-### 2.3 Upgrade Instruments Module: Spring Boot 2.7.5 → 3.x
-- **Complexity**: Medium
-- **Steps**:
-  1. Upgrade Spring Boot 2.7 → 3.x
-  2. Migrate javax.persistence → jakarta.persistence in all entity classes and repositories
-  3. Migrate javax.annotation.PostConstruct → jakarta.annotation.PostConstruct
-  4. Update OpenTelemetry annotations from 1.19.2-alpha to 2.x stable
-  5. Fix Cartesian join in `FindInstrumentRepositoryImpl.findInstruments()`
+#### 2.2 Upgrade `stock` module from Spring Boot 2.1.x to 3.x
+- **Current**: Spring Boot 2.1.3.RELEASE, Java 1.8
+- **Target**: Spring Boot 3.2.x, Java 17+
+- **Effort**: Medium complexity — simpler module with fewer dependencies
+- **Key changes required**:
+  - Migrate from Java 8 to Java 17+
+  - Migrate `javax.persistence.*` → `jakarta.persistence.*`
+  - Migrate `javax.annotation.*` → `jakarta.annotation.*`
+  - Migrate `javax.validation.*` → `jakarta.validation.*`
+  - Update Cucumber from `info.cukes:1.2.5` → `io.cucumber:7.x+`
+  - Update JUnit dependency
+- **AWS Transformation**: Use `AWS/java-version-upgrade` to upgrade Java and Spring Boot
 
-### 2.4 Upgrade JUnit 3.8.1 → JUnit 5
-- **Module**: root POM
-- **Complexity**: Low
-- **Action**: Replace `junit:junit:3.8.1` with `org.junit.jupiter:junit-jupiter:5.10+`
+#### 2.3 Upgrade `instruments` module from Spring Boot 2.7.x to 3.x
+- **Current**: Spring Boot 2.7.5, Java 17
+- **Target**: Spring Boot 3.2.x
+- **Effort**: Medium complexity — Java version is already 17, focus on namespace migration
+- **Key changes required**:
+  - Migrate `javax.persistence.*` → `jakarta.persistence.*`
+  - Migrate `javax.annotation.*` → `jakarta.annotation.*`
+  - Update OpenTelemetry annotations from alpha to stable release
+  - Remove duplicate `spring-boot-starter-web` declaration
+- **AWS Transformation**: Use `AWS/java-version-upgrade` to upgrade Spring Boot
 
-## Priority 3: Dependency Updates (Medium Severity)
+---
 
-### 3.1 Replace commons-httpclient 3.1
-- **Module**: test
-- **Action**: Replace with Apache HttpComponents HttpClient 5.x or Java 11+ `java.net.http.HttpClient`
-- **Complexity**: Medium
+### Priority 3: Outdated Dependency Updates — Severity: Medium
 
-### 3.2 Standardize OpenTelemetry Annotations
-- **Modules**: shop, instruments, annotator, products
-- **Action**: Standardize all to `io.opentelemetry.instrumentation:opentelemetry-instrumentation-annotations:2.x` (stable)
-- **Complexity**: Low
+#### 3.1 Update OpenTelemetry annotations across modules
+- **Current**: 1.19.1-alpha (annotator), 1.19.2-alpha (instruments, shop)
+- **Target**: Latest stable 2.x release
+- **Effort**: Low complexity — dependency version bump, verify annotation compatibility
 
-### 3.3 Upgrade JavaParser
-- **Module**: annotator
-- **Action**: Update from 3.23.1 to 3.26+
-- **Complexity**: Low
+#### 3.2 Migrate JUnit from 3.8.1 to 5.x
+- **Current**: JUnit 3.8.1 in root POM
+- **Target**: JUnit 5.10.x+ (Jupiter)
+- **Effort**: Medium complexity — test code refactoring required
 
-### 3.4 Remove nekohtml dependency
-- **Module**: shop
-- **Action**: Remove nekohtml 1.9.22 when upgrading Thymeleaf (modern Thymeleaf doesn't need it)
-- **Complexity**: Low (part of Spring Boot upgrade)
+#### 3.3 Migrate Cucumber in `stock` module
+- **Current**: `info.cukes:cucumber-java:1.2.5`
+- **Target**: `io.cucumber:cucumber-java:7.x+`
+- **Effort**: Medium complexity — group ID change, API updates
 
-## Priority 4: Code Quality (Low Severity)
+---
 
-### 4.1 Remove deprecated finalize() method
-- **File**: `shop/src/main/java/.../Exercises.java` line 35
-- **Action**: Replace with `try-with-resources` or `Closeable` implementation
-- **Complexity**: Low
+### Priority 4: Code Quality Improvements — Severity: Low
 
-### 4.2 Fix endpoint typo
-- **File**: `stock/src/main/java/.../resources/StockResource.java` line 34
-- **Action**: Rename `/insruments` to `/instruments` and update all callers
-- **Complexity**: Low
+#### 4.1 Refactor ProductFilterService
+- Eliminate repetitive `myCoolFunction*()` methods
+- Replace `Thread.sleep()` with proper async patterns or remove if intentional latency is no longer needed
+- Replace empty catch blocks with proper error handling
+- Remove or extract magic number `999`
 
-### 4.3 Fix hardcoded location override
-- **File**: `conductors/src/main/java/.../controllers/ConductorsController.java` line 22
-- **Action**: Remove `location = "Oregon"` line, use the parameter value
-- **Complexity**: Low
+#### 4.2 Fix Cartesian product query
+- **File**: `FindInstrumentRepositoryImpl.findInstruments()`
+- Add proper JOIN conditions or use separate queries for each table
 
-### 4.4 Fix Cartesian join
-- **File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java` line 27
-- **Current**: `SELECT * FROM instruments_for_sale, instruments_for_sale_chicago` (cross join)
-- **Action**: Use `UNION ALL` or proper JOIN with a condition
-- **Complexity**: Low
+#### 4.3 Fix endpoint and naming issues
+- Correct `/insruments` → `/instruments` in `StockResource.java`
+- Remove hardcoded `"Oregon"` override in `ConductorsController.java`
+- Fix typo `/instrumemnts` in `StockRepo.java`
 
-### 4.5 Clean up dead code
-- **Action**: Remove all commented-out code blocks across the codebase
-- **Complexity**: Low
+#### 4.4 Encapsulate public fields
+- Change public fields in `shop` module's `Instrument.java` to private with getters/setters
 
-### 4.6 Consolidate Products and Conductors modules
-- **Action**: Consider merging the largely duplicated Product/Conductors logic into a single parameterized service
-- **Complexity**: Medium
+---
 
-## Recommended AWS Transformations
+## Recommended Migration Order
 
-1. **`AWS/java-version-upgrade`**: Upgrade Java 8 modules (shop, stock) to Java 17 or 21
-2. **`AWS/early-access-log4j-to-slf4j-migration`**: Migrate Log4j 2.6.1 to SLF4J/Logback in shop and test modules
+1. **stock** — Simplest module, fewest dependencies, good starting point
+2. **instruments** — Already on Java 17, primarily namespace migration
+3. **shop** — Most complex due to Spring Cloud, Hystrix, Thymeleaf, and multiple service integrations
 
-## Cross-References
+See [Migration → Component Order](../migration/component-order.md) for detailed migration sequencing.
 
-- [Technical Debt Summary](summary.md)
+---
+
+## Related Documents
+
+- [Summary](summary.md)
 - [Outdated Components](outdated-components.md)
 - [Maintenance Burden](maintenance-burden.md)
-- [Root-Level Report](../technical-debt-report.md)
+- [Root-level Technical Debt Report](../technical-debt-report.md)
+
+---
+
+[← Back to README](../README.md)

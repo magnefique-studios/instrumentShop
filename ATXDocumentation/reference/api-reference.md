@@ -1,114 +1,107 @@
 # API Reference
 
-## Shop Service (Port 8010)
+## Complete HTTP API Specification
 
-### GET /
-Renders the main product/instrument browsing page.
+### Shop Service — `http://shop:8010`
 
-**Parameters**:
-- `name` (optional, String) — User display name. Default: "Guest"
-- `location` (optional, String) — Location filter. Default: "California"
-- `userid` (optional, String) — User ID for permission check. Default: "X0000"
+#### `GET /`
+Renders the main shop page with products and instruments for a given user/location.
+- **Parameters**: `name` (optional, default "Guest"), `location` (optional, default "California"), `userid` (optional, default "X0000")
+- **Response**: Thymeleaf HTML page ("index" template)
+- **Side effects**: Increments trace counter, tracks latency for Utah/Colorado locations
+- **Error**: Throws `NoPermissionException` if user is restricted
 
-**Response**: Thymeleaf HTML page with `products` and `instruments` model attributes.
+#### `GET /score`
+Returns exercise scores or validates an exercise answer.
+- **Parameters**: `exercise` (optional, default "0"), `data` (optional, default "")
+- **Response**: `HashMap<String, String>` as JSON — e.g., `{"exercise1": "true"}`
+- **Behavior**: If exercise=0, returns all scores. Otherwise, validates the given exercise.
 
-**Example**: `GET http://localhost:8010/?name=John&location=Utah`
+#### `GET /healthcheck`
+- **Response**: `"HTTP Status OK (CODE 200)"` with HTTP 200
 
-### GET /score
-Returns or checks exercise scores for the workshop.
-
-**Parameters**:
-- `exercise` (optional, String) — Exercise number (0-15). Default: "0"
-- `data` (optional, String) — Data to validate. Default: ""
-
-**Response** (exercise=0): `{"exercise1": "true", "exercise2": "false", ...}`
-**Response** (exercise=1-15): `{"exercise{n}": "true"|"false"}`
-
-### GET /products
-Returns product list for a location.
-
-**Parameters**:
-- `location` (optional, String) — Location filter. Default: "California"
-
-**Response**: `[{"id":"1","sku":"12345678","name":"Widget","description":"Premium ACME Widgets","price":1.20,"amountAvailable":5}, ...]`
-
-### GET /healthcheck
-**Response**: HTTP 200 OK
+#### `GET /products`
+REST endpoint returning products for a given location.
+- **Parameters**: `location` (optional, default "California")
+- **Response**: `List<Product>` as JSON
 
 ---
 
-## Products Service (Port 8020)
+### Products Service — `http://products:8020`
 
-### GET /products
-Returns filtered product catalog.
+#### `GET /products`
+Returns filtered product list for a given location.
+- **Parameters**: `location` (required)
+- **Response**: `List<Product>` as JSON (5 hardcoded products: Widget, Sprocket, Anvil, Cogs, Multitool)
+- **Behavior**: Passes through `ProductFilterService.filterAllProducts()` which adds artificial latency for Colorado
 
-**Parameters**:
-- `location` (required, String) — Location filter
-
-**Response**: `[{"id":"1","name":"Widget","description":"Premium ACME Widgets","price":1.20}, ...]`
-
-**Note**: Colorado location incurs 966-1166ms additional latency (workshop simulation).
-
-### GET /products/healthcheck
-**Response**: HTTP 200 OK
+#### `GET /products/healthcheck`
+- **Response**: `"HTTP Status OK (CODE 200)"` with HTTP 200
 
 ---
 
-## Stock Service (Port 8030)
+### Conductors Service — `http://conductors:8050`
 
-### GET /legacy
-Returns all stock records.
+#### `GET /conductors`
+Returns product list. **Note**: Location parameter is accepted but overridden to "Oregon".
+- **Parameters**: `location` (required)
+- **Response**: `List<Product>` as JSON
+- **Bug**: `location = "Oregon"` is hardcoded, then `FilteredProducts.filterProducts("Oregon")` throws `InvalidLocaleException` which is caught and swallowed by an empty catch block
 
-**Response**: `[{"productId":"1","sku":"12345678","amountAvailable":5}, ...]`
-
-### GET /insruments
-Returns instrument stock records. (Note: endpoint name contains typo)
-
-**Response**: `[{"productId":"...","sku":"...","amountAvailable":...}, ...]`
-
-### GET /healthcheck
-**Response**: HTTP 200 OK
+#### `GET /conductors/healthcheck`
+- **Response**: `"HTTP Status OK (CODE 200)"` with HTTP 200
 
 ---
 
-## Instruments Service (Port 8040)
+### Stock Service — `http://stock:8030`
 
-### GET /instruments
-Returns instruments filtered by location.
+#### `GET /legacy`
+Returns all stock records (5 synthetic records generated on startup).
+- **Response**: `List<Stock>` as JSON
 
-**Parameters**:
-- `location` (required, String, default: "California") — Location filter
+#### `GET /insruments`
+Returns instrument-specific stock records. **Note**: Endpoint has a typo ("insruments" instead of "instruments").
+- **Response**: `List<Stock>` as JSON
 
-**Response**: Full instrument objects from PostgreSQL `instruments_for_sale` table.
+#### `GET /healthcheck`
+- **Response**: `"HTTP Status OK (CODE 200)"` with HTTP 200
 
-**Special Cases**:
-- Oregon → returns empty list (locale disabled)
-- Chicago → executes cross-table query (side effect), returns all instruments
+---
 
-### GET /stocks
+### Instruments Service — `http://instruments:8040`
+
+#### `GET /instruments`
+Returns all instruments from PostgreSQL, with location-based behavior.
+- **Parameters**: `location` (required, default "California")
+- **Response**: `List<Instrument>` as JSON
+- **Behavior for Chicago**: Executes Cartesian product query (`SELECT * FROM instruments_for_sale, instruments_for_sale_chicago`) then falls back to `findAll()`
+- **Behavior for Oregon**: Returns empty list (locale filter fails)
+- **Behavior for other locations**: Returns all instruments via `findAll()`
+
+#### `GET /stocks`
 Returns instrument stock records.
+- **Response**: `List<Stock>` as JSON
 
-**Response**: `[{"iD":"...","quantity":"..."}, ...]`
-
-### GET /healthcheck
-**Response**: HTTP 200 OK
+#### `GET /healthcheck`
+- **Response**: `"HTTP Status OK (CODE 200)"` with HTTP 200
 
 ---
 
-## Conductors Service (Port 8050)
+## Inter-Service Call Map
 
-### GET /conductors
-Returns product catalog. **Note: location parameter is ignored; hardcoded to "Oregon".**
+| Caller | Callee | Endpoint | Condition |
+|--------|--------|----------|-----------|
+| shop.ProductRepo | products | `GET /products?location={loc}` | location ≠ "Utah" |
+| shop.ProductRepo | conductors | `GET /conductors?location={loc}` | location = "Utah" |
+| shop.StockRepo | stock | `GET /legacy` | Always |
+| shop.StockRepo | stock | `GET /instrumemnts` (typo) | getInstrumentStockDTOs() |
+| shop.InstrumentRepo | instruments | `GET /instruments?location={loc}` | Always |
 
-**Parameters**:
-- `location` (required, String) — Ignored; overridden to "Oregon"
+## Related Documents
 
-**Response**: `[{"id":"1","name":"Widget","description":"Premium ACME Widgets","price":1.20}, ...]`
+- [Interfaces](interfaces.md) | [Data Models](data-models.md)
+- [Architecture → Components](../architecture/components.md)
 
-### GET /conductors/healthcheck
-**Response**: HTTP 200 OK
+---
 
-## Cross-References
-
-- [Interfaces](interfaces.md) | [Data Models](data-models.md) | [Program Structure](program-structure.md)
-- [Workflows](../behavior/workflows.md)
+[← Back to README](../README.md)

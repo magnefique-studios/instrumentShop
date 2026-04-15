@@ -1,84 +1,111 @@
-# Interfaces and APIs
+# Interfaces — REST Endpoints and Public Method Signatures
 
-## REST API Endpoints
+## REST Endpoints by Service
 
-### Shop Service (Port 8010)
+### Shop Service (port 8010)
 
-| Method | Path | Parameters | Response | Handler |
-|--------|------|-----------|----------|---------|
-| GET | `/` | `name` (opt), `location` (opt), `userid` (opt) | Thymeleaf HTML page | `HomeController.getProductsAllLocations()` |
-| GET | `/score` | `exercise` (opt), `data` (opt) | `HashMap<String, String>` JSON | `HomeController.getScores()` |
-| GET | `/products` | `location` (opt) | `List<Product>` JSON | `ProductResource.getProducts()` |
-| GET | `/healthcheck` | none | HTTP 200 OK | `HomeController.healthCheck()` |
+| Method | Path | Parameters | Returns | Controller |
+|--------|------|-----------|---------|------------|
+| GET | `/` | `name` (opt), `location` (opt), `userid` (opt) | Thymeleaf "index" view | `HomeController` |
+| GET | `/score` | `exercise` (opt), `data` (opt) | `HashMap<String, String>` | `HomeController` |
+| GET | `/healthcheck` | — | `String` (HTTP 200) | `HomeController` |
+| GET | `/products` | `location` (opt) | `List<Product>` | `ProductResource` |
 
-### Products Service (Port 8020)
+### Products Service (port 8020)
 
-| Method | Path | Parameters | Response | Handler |
-|--------|------|-----------|----------|---------|
-| GET | `/products` | `location` (required) | `List<Product>` JSON | `ProductController.getProductsByLocation()` |
-| GET | `/products/healthcheck` | none | HTTP 200 OK | `ProductController.healthCheck()` |
+| Method | Path | Parameters | Returns | Controller |
+|--------|------|-----------|---------|------------|
+| GET | `/products` | `location` (required) | `List<Product>` | `ProductController` |
+| GET | `/products/healthcheck` | — | `String` (HTTP 200) | `ProductController` |
 
-### Stock Service (Port 8030)
+### Conductors Service (port 8050)
 
-| Method | Path | Parameters | Response | Handler |
-|--------|------|-----------|----------|---------|
-| GET | `/legacy` | none | `List<Stock>` JSON | `StockResource.getStocks()` |
-| GET | `/insruments` | none | `List<Stock>` JSON | `StockResource.getInstrumentStocks()` |
-| GET | `/healthcheck` | none | HTTP 200 OK | `StockResource.healthCheck()` |
+| Method | Path | Parameters | Returns | Controller |
+|--------|------|-----------|---------|------------|
+| GET | `/conductors` | `location` (required) | `List<Product>` | `ConductorsController` |
+| GET | `/conductors/healthcheck` | — | `String` (HTTP 200) | `ConductorsController` |
 
-**Note**: `/insruments` is a typo — should be `/instruments`
+### Stock Service (port 8030)
 
-### Instruments Service (Port 8040)
+| Method | Path | Parameters | Returns | Controller |
+|--------|------|-----------|---------|------------|
+| GET | `/legacy` | — | `List<Stock>` | `StockResource` |
+| GET | `/insruments` | — | `List<Stock>` | `StockResource` (Note: typo in endpoint) |
+| GET | `/healthcheck` | — | `String` (HTTP 200) | `StockResource` |
 
-| Method | Path | Parameters | Response | Handler |
-|--------|------|-----------|----------|---------|
-| GET | `/instruments` | `location` (default: "California") | `List<Instrument>` JSON | `InstrumentResource.getInstruments()` |
-| GET | `/stocks` | none | `List<Stock>` JSON | `InstrumentResource.getInstrumentStocks()` |
-| GET | `/healthcheck` | none | HTTP 200 OK | `InstrumentResource.healthCheck()` |
+### Instruments Service (port 8040)
 
-### Conductors Service (Port 8050)
+| Method | Path | Parameters | Returns | Controller |
+|--------|------|-----------|---------|------------|
+| GET | `/instruments` | `location` (required, default "California") | `List<Instrument>` | `InstrumentResource` |
+| GET | `/stocks` | — | `List<Stock>` | `InstrumentResource` |
+| GET | `/healthcheck` | — | `String` (HTTP 200) | `InstrumentResource` |
 
-| Method | Path | Parameters | Response | Handler |
-|--------|------|-----------|----------|---------|
-| GET | `/conductors` | `location` (required) | `List<Product>` JSON | `ConductorsController.getProductsByLocation()` |
-| GET | `/conductors/healthcheck` | none | HTTP 200 OK | `ConductorsController.healthCheck()` |
+## Key Public Method Signatures
 
-## Repository Interfaces
-
-### Spring Data CrudRepository Implementations
-
-| Interface | Entity | ID Type | Module |
-|-----------|--------|---------|--------|
-| `StockRepository` | `Stock` | `String` | stock |
-| `InstrumentStocksRepository` | `Stock` | `String` | stock |
-| `InstrumentRepository` | `Instrument` | `Long` | instruments |
-| `InstrumentStocksRepository` | `Stock` | `String` | instruments |
-
-### Custom Repository Interface
+### Shop Module
 
 ```java
-// instruments/src/main/java/.../repositories/FindInstrumentRepository.java
-public interface FindInstrumentRepository {
-    Object findInstruments();               // Returns cross-table query results
-    Instrument findInstrumentByID(String id); // SQL injection vulnerable
-}
+// HomeController
+public String getProductsAllLocations(Model model, String theName, String theLocation, String userid) throws Exception
+public HashMap<String, String> getScores(String exercise, String data)
+public void allParameters(String name, String location, String userid) throws NoPermissionException
+public boolean checkIfRestricted(String userId)
+public String healthCheck()
+
+// ProductService
+public List<Product> getProducts(String location)
+public List<Product> productsNotFound()
+
+// InstrumentService
+public List<Instrument> getInstruments(String location)
+
+// Repos
+public Map<String, ProductDTO> getProductDTOs(String location)                 // ProductRepo
+public Map<String, StockDTO> getStockDTOs()                                    // StockRepo (@HystrixCommand)
+public Map<String, StockDTO> getInstrumentStockDTOs()                          // StockRepo (@HystrixCommand)
+public Map<Long, InstrumentDTO> getinstrumentDTOs()                            // InstrumentRepo (@HystrixCommand)
+public Map<Long, InstrumentDTO> getinstrumentsByLocation(String location)      // InstrumentRepo
 ```
 
-## Service Interfaces (Class-Based)
+### Instruments Module
 
-| Service Class | Module | Key Methods |
-|--------------|--------|-------------|
-| `ProductService` (shop) | shop | `getProducts(String location)`, `productsNotFound()` |
-| `InstrumentService` (shop) | shop | `getInstruments(String location)`, `productsNotFound()` |
-| `ProductService` (products) | products | `getAllProducts()`, `getProduct(String id)` |
-| `ProductFilterService` (products) | products | `filterAllProducts(String, ProductService)` |
-| `ConductorsService` | conductors | `getAllProducts()`, `getProduct(String id)` |
-| `ProductFilterService` (conductors) | conductors | `filterAllProducts(String, ConductorsService)` |
-| `InstrumentService` | instruments | `getInstruments(String location)` |
-| `InstrumentStocksService` (instruments) | instruments | `getInstrumentStocks()` |
-| `StockService` | stock | `getStocks()` |
-| `InstrumentStocksService` (stock) | stock | `getStocks()`, `getStock(String productId)` |
+```java
+// InstrumentService
+public List<Instrument> getInstruments(String location)
 
-## Cross-References
+// InstrumentStocksService
+public List<Stock> getInstrumentStocks()
 
-- [Program Structure](program-structure.md) | [Data Models](data-models.md) | [API Reference](api-reference.md)
+// FindInstrumentRepository (interface)
+Object findInstruments()
+Instrument findInstrumentByID(String id)
+```
+
+### Stock Module
+
+```java
+// StockService
+public List<Stock> getStocks()
+
+// InstrumentStocksService
+public List<Stock> getStocks()
+public Stock getStock(String productId) throws StockNotFoundException
+```
+
+### Annotator Module
+
+```java
+// OpenTelemetryAnnotator
+public static ArrayList<Path> listFiles(URI path) throws IOException
+public static void annotateCodebase(File projectDir) throws Exception
+public static void annotateFile(String sFileName) throws Exception
+```
+
+## Related Documents
+
+- [API Reference](api-reference.md) | [Data Models](data-models.md) | [Program Structure](program-structure.md)
+
+---
+
+[← Back to README](../README.md)

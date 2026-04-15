@@ -1,104 +1,91 @@
-# Architecture Diagrams
+# System Context Diagram
 
-## System Context Diagram
+## Deployment Architecture
 
-```
-┌──────────────────────────────────────────────────────────────────────┐
-│                          External Context                             │
-│                                                                       │
-│  ┌───────────┐                                       ┌─────────────┐ │
-│  │  Browser   │          HTTP :8010                  │   Redis     │ │
-│  │  (User)    │──────────────────────┐               │  (unused)   │ │
-│  └───────────┘                       │               └─────────────┘ │
-│                                      │                                │
-│  ┌───────────┐                       │                                │
-│  │  Traffic   │     HTTP :8010       │                                │
-│  │  Generator │──────────────────────┤                                │
-│  │  (test)    │                      │                                │
-│  └───────────┘                       │                                │
-│                                      │                                │
-│                     ┌────────────────▼──────────────────────┐        │
-│                     │         JavaShop System                │        │
-│                     │                                        │        │
-│                     │  ┌──────┐ ┌─────┐ ┌─────┐ ┌────────┐ │        │
-│                     │  │ Shop │ │Prod │ │Stock│ │Instrmts│ │        │
-│                     │  │:8010 │ │:8020│ │:8030│ │ :8040  │ │        │
-│                     │  └──────┘ └─────┘ └─────┘ └───┬────┘ │        │
-│                     │  ┌──────────┐                  │      │        │
-│                     │  │Conductors│                   │      │        │
-│                     │  │  :8050   │                   │      │        │
-│                     │  └──────────┘                   │      │        │
-│                     └────────────────────────────────┼──────┘        │
-│                                                      │                │
-│                                               ┌──────▼──────┐        │
-│                                               │ PostgreSQL  │        │
-│                                               │   :5432     │        │
-│                                               └─────────────┘        │
-└──────────────────────────────────────────────────────────────────────┘
+```mermaid
+C4Context
+    title Java Instrument Shop - System Context
+
+    Person(user, "Shop User", "Browses instruments and products")
+
+    System_Boundary(docker, "Docker Compose Environment") {
+        System(shop, "Shop Service", "Spring Boot 1.5.19 / Java 8<br/>Port 8010 — Frontend + API Gateway")
+        System(products, "Products Service", "Spring Boot 3.2.2 / Java 17<br/>Port 8020 — Product Catalog")
+        System(conductors, "Conductors Service", "Spring Boot 3.2.2 / Java 17<br/>Port 8050 — Utah Products")
+        System(stock, "Stock Service", "Spring Boot 2.1.3 / Java 8<br/>Port 8030 — Inventory (H2)")
+        System(instruments, "Instruments Service", "Spring Boot 2.7.5 / Java 17<br/>Port 8040 — Instrument CRUD")
+        SystemDb(postgres, "PostgreSQL 13.1", "Port 5432 — Instrument Data")
+        System(redis, "Redis", "Caching Layer")
+        System(tester, "Traffic Tester", "Load Generator")
+    }
+
+    Rel(user, shop, "HTTP :8010")
+    Rel(shop, products, "REST /products")
+    Rel(shop, conductors, "REST /conductors")
+    Rel(shop, stock, "REST /legacy")
+    Rel(shop, instruments, "REST /instruments")
+    Rel(instruments, postgres, "JDBC")
+    Rel(tester, shop, "HTTP traffic")
 ```
 
-## Service Map with Ports
+## ASCII System Context
 
 ```
-                    ┌─────────────────────────────┐
-                    │       Shop (Gateway)        │
-                    │     localhost:8010           │
-                    │  Spring Boot 1.5.19/Java 8  │
-                    └──┬──────┬──────┬─────────┬──┘
-                       │      │      │         │
-          ┌────────────┘      │      │         └────────────┐
-          │                   │      │                      │
-    ┌─────▼──────┐    ┌──────▼────┐ ┌▼────────────┐  ┌─────▼────────┐
-    │  Products  │    │Conductors │ │    Stock     │  │ Instruments  │
-    │ :8020      │    │  :8050    │ │   :8030      │  │   :8040      │
-    │ SB 3.2.2   │    │ SB 3.2.2 │ │  SB 2.1.3   │  │  SB 2.7.5   │
-    │ Java 17    │    │ Java 17  │ │  Java 8      │  │  Java 17     │
-    │ In-Memory  │    │ In-Memory│ │  H2 DB       │  │  JPA/Hibern. │
-    └────────────┘    └──────────┘ └──────────────┘  └──────┬───────┘
-                                                            │ JDBC
-                                                     ┌──────▼───────┐
-                                                     │  PostgreSQL  │
-                                                     │    :5432     │
-                                                     │  13.1-alpine │
-                                                     └──────────────┘
+                    ┌──────────────┐
+                    │  👤 User     │
+                    │  Browser     │
+                    └──────┬───────┘
+                           │ HTTP :8010
+                           ▼
+┌─────────────────────────────────────────────────────────┐
+│              Docker Compose Environment                   │
+│                                                          │
+│  ┌──────────────────────────────────────────────┐       │
+│  │           Shop Service (API Gateway)          │       │
+│  │        Spring Boot 1.5.19 | Java 8            │       │
+│  │     Hystrix Circuit Breaker | Thymeleaf       │       │
+│  └───┬──────────┬────────────┬──────────┬───────┘       │
+│      │          │            │          │               │
+│      ▼          ▼            ▼          ▼               │
+│  ┌────────┐ ┌────────┐ ┌────────┐ ┌──────────┐        │
+│  │Products│ │Conduct-│ │ Stock  │ │Instrumen-│        │
+│  │Service │ │ors Svc │ │Service │ │ts Service│        │
+│  │SB 3.2.2│ │SB 3.2.2│ │SB 2.1.3│ │SB 2.7.5 │        │
+│  │Java 17 │ │Java 17 │ │Java 8  │ │Java 17   │        │
+│  │In-mem  │ │In-mem  │ │H2 DB   │ │JPA/JDBC  │        │
+│  └────────┘ └────────┘ └────────┘ └────┬─────┘        │
+│                                         │               │
+│                                         ▼               │
+│                                    ┌──────────┐         │
+│  ┌──────┐                          │PostgreSQL│         │
+│  │Redis │                          │  13.1    │         │
+│  │Cache │                          │ :5432    │         │
+│  └──────┘                          └──────────┘         │
+│                                                          │
+│  ┌──────────┐  ┌──────────┐                             │
+│  │Annotator │  │  Tester  │                             │
+│  │(CLI tool)│  │(traffic) │                             │
+│  └──────────┘  └──────────┘                             │
+└─────────────────────────────────────────────────────────┘
 ```
 
-## Security Boundaries
+## Network Configuration
 
-```
-┌──────────────────────────────────────────────────────────┐
-│                     PUBLIC ACCESS                          │
-│                 (No Authentication)                        │
-│                                                           │
-│  All endpoints on all services are publicly accessible    │
-│  No Spring Security configured                            │
-│  No HTTPS/TLS                                             │
-│                                                           │
-│  ┌─────────────────────────────────────────────────────┐ │
-│  │              Docker Network (internal)                │ │
-│  │                                                       │ │
-│  │  Services communicate over plain HTTP                 │ │
-│  │  PostgreSQL credentials hardcoded in docker-compose   │ │
-│  │  Database port (5432) exposed to host                 │ │
-│  │                                                       │ │
-│  │  ┌─────────────┐                                     │ │
-│  │  │ PostgreSQL  │ ← Credentials: instruments/instruments│ │
-│  │  │             │ ← DDL: hibernate.ddl-auto=update     │ │
-│  │  └─────────────┘                                     │ │
-│  └─────────────────────────────────────────────────────┘ │
-│                                                           │
-│  ⚠️ SECURITY CONCERNS:                                   │
-│  • Log4j 2.6.1 (CVE-2021-44228)                          │
-│  • SQL Injection in FindInstrumentRepositoryImpl          │
-│  • No input validation on location parameter              │
-│  • Hardcoded credentials                                  │
-│  • No CSRF protection                                     │
-└──────────────────────────────────────────────────────────┘
-```
+- All services share the `instrument_shop` Docker network (external)
+- Services reference each other by Docker service names (DNS resolution)
+- Shop's `application.properties` defines service URLs:
+  - `productsUri = http://products:8020`
+  - `conductorsUri = http://conductors:8050`
+  - `stockUri = http://stock:8030`
+  - `instrumentsUri = http://instruments:8040`
 
-## Cross-References
+## Related Documents
 
-- [Structural Diagrams](../structural/component-diagrams.md)
-- [Behavioral Diagrams](../behavioral/sequence-diagrams.md)
-- [System Overview](../../architecture/system-overview.md)
-- [Security Patterns](../../analysis/security-patterns.md)
+- [Component Diagrams](../structural/component-diagrams.md)
+- [Sequence Diagrams](../behavioral/sequence-diagrams.md)
+- [Architecture → System Overview](../../architecture/system-overview.md)
+- [Deployment Configuration](../../specialized/deployment-configuration.md)
+
+---
+
+[← Back to README](../../README.md)

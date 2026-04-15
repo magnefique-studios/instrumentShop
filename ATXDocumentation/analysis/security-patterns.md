@@ -1,93 +1,113 @@
 # Security Patterns
 
-## Critical Vulnerabilities
+## Critical Security Findings
 
-### 1. SQL Injection — FindInstrumentRepositoryImpl.findInstrumentByID()
-- **Severity**: High
-- **File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java` line 33
-- **Code**: `"FROM instruments i WHERE i.ID = " + id.toString()`
-- **Impact**: An attacker can inject arbitrary SQL/HQL through the `id` parameter
-- **Remediation**: Use parameterized queries:
-  ```java
-  entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
-               .setParameter("id", id)
-               .getSingleResult();
-  ```
+### 1. SQL Injection — Severity: Medium
 
-### 2. Log4j 2.6.1 Remote Code Execution (CVE-2021-44228)
-- **Severity**: High
-- **Files**: `shop/pom.xml` lines 36-41, `test/pom.xml` lines 10-17
-- **Impact**: Log4Shell vulnerability allows remote code execution through crafted log messages containing JNDI lookups
-- **Remediation**: Upgrade to Log4j 2.17.0+ or migrate to SLF4J/Logback
+**File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java`, line ~32
 
-### 3. Cross-Table Cartesian Join
-- **Severity**: Medium
-- **File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java` line 27
-- **Code**: `"SELECT * FROM instruments_for_sale, instruments_for_sale_chicago"`
-- **Impact**: Returns Cartesian product of both tables (data corruption/incorrect results), potential performance issue with large datasets
-- **Remediation**: Use `UNION ALL` or a proper `JOIN` with conditions
+```java
+public Instrument findInstrumentByID(String id) {
+    Instrument result = (Instrument) entityManager
+        .createQuery("FROM instruments i WHERE i.ID = " + id.toString())
+        .getSingleResult();
+    return result;
+}
+```
 
-## Credential and Secret Handling
+**Risk**: The `id` parameter is concatenated directly into the HQL query without sanitization. An attacker could inject arbitrary HQL/SQL.
 
-### 4. Hardcoded Database Credentials
-- **Severity**: Medium
-- **File**: `docker-compose.yml` lines 121-123
-- **Credentials**: PostgreSQL user/password both set to "instruments"
-- **Impact**: Credentials visible in version control
-- **Remediation**: Use Docker secrets or environment variable references from a `.env` file (partially done with `${SHOP_USER}`)
+**Fix**: Use parameterized queries:
+```java
+entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
+    .setParameter("id", id)
+    .getSingleResult();
+```
 
-### 5. Commented-Out External HTTP Calls with Tokens
-- **Severity**: Low (currently commented out)
-- **File**: `shop/src/main/java/.../controllers/HomeController.java` lines 98-128
-- **Description**: Commented-out code contains a Lambda function URL and HTTP POST with user credentials
-- **Impact**: If uncommented, exposes endpoint URLs; demonstrates insecure credential handling pattern
+---
 
-### 6. Observability Token Handling in Exercises
-- **Severity**: Medium
-- **File**: `shop/src/main/java/.../Exercises.java` lines 144-197
-- **Description**: `checkExercise2()` reads Splunk access tokens from a properties file and sends them via HTTP to `ingest.{realm}.signalfx.com`
-- **Impact**: Tokens stored in plaintext file at `/container/shop/data/.env`
-- **Mitigation**: Contains checks for "dummy"/"test"/"placeholder" tokens
+### 2. Log4j 2.6.1 Vulnerability (Log4Shell) — Severity: Medium
 
-## Input Validation
+**File**: `shop/pom.xml`, lines ~31-37
 
-### 7. No Input Validation on Location Parameter
-- **Severity**: Low
-- **Files**: Multiple controllers across all modules
-- **Description**: The `location` parameter is used directly in REST calls and database queries without validation:
-  - `HomeController` — passes to services
-  - `ProductController` — passes to filter service
-  - `InstrumentResource` — passes to InstrumentService
-  - `ConductorsController` — hardcoded (mitigates risk)
-- **Impact**: Potential for unexpected behavior with malicious input
-- **Remediation**: Add input validation/sanitization for location parameter
+```xml
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
+    <version>2.6.1</version>
+</dependency>
+```
 
-### 8. Missing CSRF Protection
-- **Severity**: Low
-- **File**: `shop/src/main/java/.../JavaShopApp.java`
-- **Description**: Spring Boot 1.5 with Spring MVC does not enable CSRF protection by default for Thymeleaf forms
-- **Impact**: Potential cross-site request forgery attacks
+**Risk**: Log4j 2.6.1 is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105. These allow remote code execution through crafted log messages.
 
-## Authentication & Authorization
+**Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
 
-### 9. No Authentication Framework
-- **Severity**: Medium (for a production application)
-- **Description**: No Spring Security or equivalent authentication mechanism is configured. The `checkIfRestricted()` method in `HomeController` is the only permission check, and it's commented out (always returns false).
-- **Impact**: All endpoints are publicly accessible
+---
 
-## Secure Coding Observations
+### 3. Cartesian Product Query — Severity: Low
 
-| Pattern | Status | Notes |
-|---------|--------|-------|
-| Parameterized queries | ❌ Not used | `FindInstrumentRepositoryImpl` uses string concatenation |
-| Input validation | ❌ Minimal | Location parameter not validated |
-| HTTPS | ❌ Not configured | All inter-service communication over plain HTTP |
-| Authentication | ❌ None | No Spring Security |
-| Secret management | ⚠️ Partial | `.env` file used but credentials in docker-compose.yml |
-| Dependency scanning | ❌ Not configured | No OWASP or similar dependency check |
-| Error messages | ⚠️ Verbose | Stack traces printed to stdout in multiple places |
+**File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java`, line ~26
 
-## Cross-References
+```java
+entityManager.createNativeQuery("SELECT * FROM instruments_for_sale, instruments_for_sale_chicago").getResultList();
+```
 
-- [Error Handling](../behavior/error-handling.md) | [Remediation Plan](../technical-debt/remediation-plan.md)
+**Risk**: Cross-join without WHERE clause produces 131 × 86 = 11,266 rows. Denial of service vector if triggered repeatedly.
+
+**Trigger**: Only executed when location is "Chicago".
+
+---
+
+### 4. Commented-Out External HTTP Call with Hardcoded URL — Severity: Low
+
+**File**: `shop/src/main/java/.../controllers/HomeController.java`, line ~100 (commented out)
+
+```java
+// URL url = new URL("https://mofi2flod5cpeismodr7eonuiu0gkoli.lambda-url.us-west-1.on.aws/?userId=" + userId);
+```
+
+**Risk**: If uncommented, this would make HTTP calls to a hardcoded external AWS Lambda URL with user IDs. The URL may no longer be controlled by the project maintainers.
+
+---
+
+### 5. Empty Catch Blocks Hiding Errors — Severity: Low
+
+**Files**: `products/...ProductFilterService.java`, `conductors/...ProductFilterService.java`, `conductors/...ConductorsController.java`
+
+**Risk**: Silently swallowing exceptions prevents detection of runtime errors, security incidents, or data corruption. Over 30 instances across the codebase.
+
+---
+
+### 6. Static Mutable State — Severity: Low
+
+**File**: `shop/src/main/java/.../controllers/HomeController.java`, lines ~25-26
+
+```java
+public static long s_coloradoLatency;
+public static long s_utahLatency;
+```
+
+**Risk**: Static mutable fields in a multi-threaded web server can lead to race conditions and data corruption.
+
+---
+
+## Security Patterns in Use
+
+| Pattern | Implementation | Location |
+|---------|---------------|----------|
+| Circuit Breaker | Hystrix fallbacks prevent cascading failures | shop module repos |
+| Health Checks | `/healthcheck` endpoints for container monitoring | All services |
+| JPA Repository | Standard Spring Data patterns (excluding custom impl) | instruments, stock |
+| Spring Security | Not implemented | — |
+| Input Validation | Minimal (no `@Valid`, no request validation) | All services |
+| CORS | Not configured | All services |
+| Authentication | Not implemented | All services |
+
+## Related Documents
+
 - [Technical Debt Report](../technical-debt-report.md)
+- [Code Metrics](code-metrics.md) | [Dependency Analysis](dependency-analysis.md)
+
+---
+
+[← Back to README](../README.md)

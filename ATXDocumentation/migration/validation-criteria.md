@@ -1,77 +1,69 @@
 # Validation Criteria
 
-## Criteria for Successful Migration
+## Success Criteria for Migration
 
-### 1. Build Validation
-- [ ] All modules compile without errors using `mvn clean package -DskipTests`
-- [ ] No deprecated API warnings from removed javax.* packages
-- [ ] All Spring Boot modules produce runnable fat JARs
-- [ ] Docker images build successfully for all services
+### Per-Module Validation
 
-### 2. Runtime Validation
-- [ ] All services start without errors in Docker Compose
-- [ ] All health check endpoints return HTTP 200
-- [ ] PostgreSQL connection established by Instruments service
-- [ ] H2 database initialized by Stock service with 5 records
-- [ ] No ClassNotFoundException or NoClassDefFoundError at runtime
+Each module upgrade is considered successful when:
 
-### 3. Functional Validation
+1. **Build Success**: Module compiles without errors using `mvn clean package`
+2. **Health Check**: `/healthcheck` endpoint returns HTTP 200
+3. **Functional Equivalence**: All REST endpoints return the same response structure as pre-migration
+4. **No javax References**: No remaining `javax.persistence`, `javax.annotation`, or `javax.validation` imports (for modules migrating to Spring Boot 3.x)
+5. **No Deprecated APIs**: No usage of deprecated Spring Boot APIs
+6. **Docker Deployment**: Service starts and passes health check in Docker Compose environment
 
-#### Shop Service
-- [ ] Main page (`/`) renders with products and instruments
-- [ ] Location=Utah routes to Conductors service
-- [ ] Location=California routes to Products service
-- [ ] Score endpoint (`/score`) returns exercise results
-- [ ] Products endpoint (`/products`) returns merged product/stock data
+### Stock Module Criteria
 
-#### Products Service
-- [ ] `GET /products?location=California` returns 5 products
-- [ ] Product data contains id, name, description, price fields
-- [ ] Colorado location triggers latency simulation (if preserved)
+- [ ] Spring Boot 3.2.x parent declared in pom.xml
+- [ ] Java 17 (or higher) target in pom.xml
+- [ ] All `javax.*` imports replaced with `jakarta.*`
+- [ ] H2 database functions correctly (5 seed records created)
+- [ ] `/legacy` endpoint returns 5 stock records
+- [ ] `/insruments` endpoint returns stock records
+- [ ] `/healthcheck` returns HTTP 200
+- [ ] Cucumber tests migrated to `io.cucumber` group ID
 
-#### Stock Service
-- [ ] `GET /legacy` returns 5 stock records
-- [ ] Stock data contains productId, sku, amountAvailable fields
+### Instruments Module Criteria
 
-#### Instruments Service
-- [ ] `GET /instruments?location=California` returns instrument list
-- [ ] `GET /instruments?location=Oregon` returns empty list
-- [ ] `GET /stocks` returns instrument stock data
+- [ ] Spring Boot 3.2.x parent declared in pom.xml
+- [ ] All `javax.persistence.*` replaced with `jakarta.persistence.*`
+- [ ] All `javax.annotation.*` replaced with `jakarta.annotation.*`
+- [ ] PostgreSQL connection functions correctly
+- [ ] `/instruments?location=California` returns instrument data
+- [ ] `/instruments?location=Chicago` returns data (Cartesian product behavior preserved or fixed)
+- [ ] `/instruments?location=Oregon` returns empty array
+- [ ] `/stocks` endpoint returns stock data
+- [ ] OpenTelemetry annotations upgraded to stable version
 
-#### Conductors Service
-- [ ] `GET /conductors?location=Utah` returns 5 products
+### Shop Module Criteria
 
-### 4. Security Validation
-- [ ] Log4j 2.6.1 no longer on any classpath (verified via dependency tree)
-- [ ] No javax.persistence or javax.validation imports in source code
-- [ ] SQL injection in FindInstrumentRepositoryImpl fixed (parameterized query)
+- [ ] Spring Boot 3.2.x parent declared in pom.xml
+- [ ] Java 17+ target in pom.xml
+- [ ] Spring Cloud updated to current release
+- [ ] Hystrix replaced with Resilience4j (fallback behavior preserved)
+- [ ] All `javax.*` imports replaced with `jakarta.*`
+- [ ] Log4j upgraded to safe version (or migrated to SLF4J)
+- [ ] Thymeleaf renders correctly without LEGACYHTML5 mode
+- [ ] All downstream service calls function correctly
+- [ ] `/` renders homepage with products and instruments
+- [ ] Utah routing to conductors service works
+- [ ] Exercise scoring system functions correctly
 
-### 5. Inter-Service Communication Validation
-- [ ] Shop successfully calls Products service and receives response
-- [ ] Shop successfully calls Stock service and receives response
-- [ ] Shop successfully calls Instruments service and receives response
-- [ ] Shop routes Utah requests to Conductors service
-- [ ] Circuit breaker (Resilience4j) fallbacks work on service failure
+### System-Wide Criteria
 
-### 6. Data Integrity Validation
-- [ ] Product data matches original hardcoded catalog (5 items)
-- [ ] Stock data matches original synthetic data (5 records)
-- [ ] Instrument data loaded from SQL scripts into PostgreSQL
-- [ ] No data loss or corruption during migration
+- [ ] All 5 services start successfully in Docker Compose
+- [ ] All health checks pass within startup period
+- [ ] Inter-service communication works across all services
+- [ ] No Spring Boot version older than 3.x remains in any module
+- [ ] No Java version older than 17 remains in any module
+- [ ] No known critical CVE vulnerabilities in dependencies
 
-### 7. Compatibility Matrix
-
-| Module | Java Version | Spring Boot | Build | Startup | Endpoints |
-|--------|-------------|-------------|-------|---------|-----------|
-| shop | ≥17 | ≥3.2 | ✅ | ✅ | ✅ |
-| products | ≥17 | ≥3.2 | ✅ | ✅ | ✅ |
-| stock | ≥17 | ≥3.2 | ✅ | ✅ | ✅ |
-| instruments | ≥17 | ≥3.2 | ✅ | ✅ | ✅ |
-| conductors | ≥17 | ≥3.2 | ✅ | ✅ | ✅ |
-| annotator | ≥17 | N/A | ✅ | ✅ | N/A |
-| test | ≥17 | N/A | ✅ | ✅ | N/A |
-
-## Cross-References
+## Related Documents
 
 - [Component Order](component-order.md) | [Test Specifications](test-specifications.md)
-- [Remediation Plan](../technical-debt/remediation-plan.md)
+- [Technical Debt → Remediation Plan](../technical-debt/remediation-plan.md)
+
+---
+
+[← Back to README](../README.md)

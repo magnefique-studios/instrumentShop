@@ -1,137 +1,111 @@
-# Behavioral Diagrams
+# Sequence Diagrams
 
-## Sequence Diagram: Product Browsing Flow
+## Product Retrieval Flow (Non-Utah Location)
 
-```
-Browser          Shop:8010       Products:8020    Stock:8030     Instruments:8040    PostgreSQL
-  │                 │                │                │                │                │
-  │  GET /?loc=CA   │                │                │                │                │
-  │────────────────▶│                │                │                │                │
-  │                 │                │                │                │                │
-  │                 │ GET /products? │                │                │                │
-  │                 │───────────────▶│                │                │                │
-  │                 │                │ filterAll()    │                │                │
-  │                 │                │ [100+ methods] │                │                │
-  │                 │                │ getAllProducts()│                │                │
-  │                 │  List<Product> │                │                │                │
-  │                 │◀───────────────│                │                │                │
-  │                 │                │                │                │                │
-  │                 │ GET /legacy    │                │                │                │
-  │                 │───────────────────────────────▶│                │                │
-  │                 │                │  List<Stock>   │                │                │
-  │                 │◀───────────────────────────────│                │                │
-  │                 │                │                │                │                │
-  │                 │ [Merge Products + Stock]        │                │                │
-  │                 │                │                │                │                │
-  │                 │ GET /instruments?loc=CA         │                │                │
-  │                 │───────────────────────────────────────────────▶│                │
-  │                 │                │                │  findAll()     │                │
-  │                 │                │                │────────────────────────────────▶│
-  │                 │                │                │  List<Instr>   │                │
-  │                 │                │                │◀────────────────────────────────│
-  │                 │  List<Instrument>               │                │                │
-  │                 │◀───────────────────────────────────────────────│                │
-  │                 │                │                │                │                │
-  │  HTML Page      │                │                │                │                │
-  │◀────────────────│                │                │                │                │
+```mermaid
+sequenceDiagram
+    participant U as User Browser
+    participant S as Shop :8010
+    participant P as Products :8020
+    participant ST as Stock :8030
+
+    U->>S: GET /?location=California&name=Guest
+    S->>S: allParameters() — permission check
+    S->>P: GET /products?location=California
+    P->>P: ProductFilterService.filterAllProducts()
+    P->>P: myCoolFunction1..N() [Thread.sleep]
+    P-->>S: List<ProductDTO> [5 products]
+    S->>ST: GET /legacy
+    ST-->>S: List<StockDTO> [5 stock records]
+    S->>S: Merge products + stock → List<Product>
+    S->>S: instrumentService.getInstruments()
+    Note over S: (see Instrument Retrieval below)
+    S-->>U: HTML page (Thymeleaf index)
 ```
 
-## Sequence Diagram: Utah Location Flow
+## Product Retrieval Flow (Utah — via Conductors)
 
-```
-Browser          Shop:8010      Conductors:8050     Stock:8030    Instruments:8040
-  │                 │                │                  │                │
-  │ GET /?loc=Utah  │                │                  │                │
-  │────────────────▶│                │                  │                │
-  │                 │                │                  │                │
-  │                 │ GET /conductors│                  │                │
-  │                 │───────────────▶│                  │                │
-  │                 │                │ loc="Oregon"     │                │
-  │                 │                │ FilteredProducts()│               │
-  │                 │                │ [throws→caught]  │                │
-  │                 │                │ filterAllProducts()               │
-  │                 │ List<Product>  │                  │                │
-  │                 │◀───────────────│                  │                │
-  │                 │                │                  │                │
-  │                 │ GET /legacy    │                  │                │
-  │                 │──────────────────────────────────▶│                │
-  │                 │ List<Stock>    │                  │                │
-  │                 │◀──────────────────────────────────│                │
-  │                 │                │                  │                │
-  │                 │ GET /instruments?loc=Utah         │                │
-  │                 │──────────────────────────────────────────────────▶│
-  │                 │ List<Instrument>                  │                │
-  │                 │◀──────────────────────────────────────────────────│
-  │  HTML Page      │                │                  │                │
-  │◀────────────────│                │                  │                │
+```mermaid
+sequenceDiagram
+    participant U as User Browser
+    participant S as Shop :8010
+    participant C as Conductors :8050
+    participant ST as Stock :8030
+
+    U->>S: GET /?location=Utah
+    S->>C: GET /conductors?location=Utah
+    C->>C: location = "Oregon" (hardcoded override)
+    C->>C: FilteredProducts.filterProducts("Oregon")
+    C->>C: throws InvalidLocaleException (caught, swallowed)
+    C->>C: ProductFilterService.filterAllProducts() [no filtering]
+    C-->>S: List<ProductDTO> [5 products]
+    S->>ST: GET /legacy
+    ST-->>S: List<StockDTO>
+    S->>S: Merge products + stock
+    S-->>U: HTML page
 ```
 
-## Activity Diagram: Location-Based Routing
+## Product Retrieval Flow (Colorado — with Latency Bug)
 
-```
-                    ┌──────────────┐
-                    │   Request    │
-                    │  Received    │
-                    └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │  location    │
-                    │  == "Utah"?  │
-                    └──┬───────┬───┘
-                   YES │       │ NO
-                       │       │
-              ┌────────▼──┐ ┌──▼─────────┐
-              │ Call       │ │ Call       │
-              │ Conductors │ │ Products   │
-              │ :8050      │ │ :8020      │
-              └────────┬───┘ └──┬─────────┘
-                       │        │
-                    ┌──▼────────▼──┐
-                    │ Call Stock   │
-                    │ :8030/legacy │
-                    └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │ Merge Product│
-                    │ + Stock Data │
-                    └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │ Call         │
-                    │ Instruments  │
-                    │ :8040        │
-                    └──────┬───────┘
-                           │
-                    ┌──────▼───────┐
-                    │   Render     │
-                    │   Template   │
-                    └──────────────┘
+```mermaid
+sequenceDiagram
+    participant U as User Browser
+    participant S as Shop :8010
+    participant P as Products :8020
+
+    U->>S: GET /?location=Colorado
+    S->>P: GET /products?location=Colorado
+    P->>P: filterAllProducts("Colorado")
+    P->>P: myCoolFunction11("Colorado")
+    P->>P: locationLookup11("Colorado")
+    P->>P: myCoolFunction234234234(999)
+    P->>P: Thread.sleep(966-1166ms) ⚠️
+    P-->>S: List<ProductDTO> (delayed ~1 second)
+    S->>S: Track s_coloradoLatency
+    S-->>U: HTML page (slow response)
 ```
 
-## Data Flow Diagram
+## Instrument Retrieval Flow (Standard)
 
-```
-┌──────────┐     Location        ┌──────────────┐
-│  Browser │────────────────────▶│    Shop       │
-│          │                     │  HomeCtrl     │
-└──────────┘                     └──┬──┬──┬──────┘
-                                    │  │  │
-                    Products/DTOs   │  │  │  Instruments/DTOs
-                    ┌───────────────┘  │  └───────────────┐
-                    │                  │                    │
-              ┌─────▼──────┐    ┌─────▼──────┐     ┌──────▼───────┐
-              │  Products  │    │   Stock    │     │ Instruments  │
-              │ /Conductors│    │            │     │              │
-              └────────────┘    └────────────┘     └──────┬───────┘
-                                                          │ JDBC
-                                                   ┌──────▼───────┐
-                                                   │  PostgreSQL  │
-                                                   │  DB Tables   │
-                                                   └──────────────┘
+```mermaid
+sequenceDiagram
+    participant S as Shop :8010
+    participant I as Instruments :8040
+    participant DB as PostgreSQL
+
+    S->>I: GET /instruments?location=California
+    I->>I: FilteredInstrument.filterInstruments("California")
+    I->>I: returns true (not Oregon)
+    I->>DB: SELECT * FROM instruments_for_sale (JPA findAll)
+    DB-->>I: List<Instrument> [131 records]
+    I-->>S: List<Instrument>
+    S->>S: Map to shop.model.Instrument with locale check
 ```
 
-## Cross-References
+## Instrument Retrieval Flow (Chicago — with Cartesian Product)
 
-- [Structural Diagrams](../structural/component-diagrams.md)
-- [Architecture Diagrams](../architecture/system-context.md)
-- [Workflows](../../behavior/workflows.md)
+```mermaid
+sequenceDiagram
+    participant S as Shop :8010
+    participant I as Instruments :8040
+    participant DB as PostgreSQL
+
+    S->>I: GET /instruments?location=Chicago
+    I->>I: FilteredInstrument.filterInstruments("Chicago") → true
+    I->>DB: SELECT * FROM instruments_for_sale, instruments_for_sale_chicago ⚠️
+    Note over DB: Cartesian product: 131 × 86 = 11,266 rows
+    DB-->>I: Object (result list)
+    I->>DB: SELECT * FROM instruments_for_sale (JPA findAll — fallback)
+    DB-->>I: List<Instrument> [131 records]
+    I-->>S: List<Instrument>
+```
+
+## Related Documents
+
+- [Component Diagrams](../structural/component-diagrams.md)
+- [System Context](../architecture/system-context.md)
+- [Behavior → Workflows](../../behavior/workflows.md)
+
+---
+
+[← Back to README](../../README.md)

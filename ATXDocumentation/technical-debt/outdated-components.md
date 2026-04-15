@@ -1,99 +1,89 @@
-# Outdated Components
+# Outdated Components — Detailed Analysis
 
-## 🔴 High Severity — EOL/Deprecated Runtimes & Frameworks
+## Module-by-Module Dependency Assessment
 
-### 1. Spring Boot 1.5.19.RELEASE (shop module)
-- **File**: `shop/pom.xml` line 15
-- **Status**: End of Life since August 2019
-- **Impact**: No security patches, no bug fixes, incompatible with modern Spring ecosystem
-- **Upgrade Path**: Spring Boot 1.5 → 2.x → 3.x (requires Java 17+, Jakarta EE migration)
+### 1. `shop` Module (Most Critical)
 
-### 2. Spring Boot 2.1.3.RELEASE (stock module)
-- **File**: `stock/pom.xml` line 14
-- **Status**: End of Life (out of OSS support)
-- **Impact**: No security patches
-- **Upgrade Path**: Spring Boot 2.1 → 3.x (requires Java 17+, Jakarta EE migration)
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| Spring Boot | 1.5.19.RELEASE | 3.2.x+ | **High** | EOL since August 2019, no security patches |
+| Spring Cloud | Dalston.SR5 | 2023.0.x+ | **High** | EOL, requires major migration |
+| spring-cloud-starter-hystrix | (Dalston managed) | N/A (removed) | **High** | Hystrix deprecated, replaced by Resilience4j |
+| spring-cloud-starter-eureka | (Dalston managed) | N/A (renamed) | **High** | Renamed to spring-cloud-starter-netflix-eureka-client |
+| Log4j (log4j-api, log4j-core) | 2.6.1 | 2.23.x+ | **Medium** | Vulnerable to Log4Shell CVE-2021-44228 and other critical CVEs |
+| AspectJ Weaver | 1.9.19 | 1.9.21+ | **Medium** | Moderately outdated |
+| OpenTelemetry annotations | 1.19.2-alpha | 2.x+ (stable) | **Medium** | Pre-release alpha version |
+| NekoHTML | 1.9.22 | 1.9.22 | Low | Final release, project archived |
+| Java target | 1.8 | 21+ | **High** | Approaching/at end of public updates |
+| maven-jar-plugin | 3.0.0 | 3.3.0+ | Low | Moderately outdated |
 
-### 3. Spring Boot 2.7.5 (instruments module)
-- **File**: `instruments/pom.xml` line 15
-- **Status**: End of Life since November 2023
-- **Impact**: No security patches
-- **Upgrade Path**: Spring Boot 2.7 → 3.x (requires Jakarta EE migration, javax → jakarta)
+### 2. `stock` Module
 
-### 4. Spring Cloud Dalston.SR5 (shop module)
-- **File**: `shop/pom.xml` line 27
-- **Status**: End of Life
-- **Impact**: Based on Spring Boot 1.5, incompatible with modern Spring Cloud
-- **Upgrade Path**: Dalston → 2022.x+ (requires Spring Boot 3.x)
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| Spring Boot | 2.1.3.RELEASE | 3.2.x+ | **High** | EOL since late 2019 |
+| Java target | 1.8 | 21+ | **High** | Approaching/at end of public updates |
+| Cucumber (info.cukes) | 1.2.5 | N/A | **Medium** | Deprecated group ID, migrated to `io.cucumber` 7.x+ |
+| Hamcrest | 2.1 | 2.2+ | Low | Minor version behind |
+| versions-maven-plugin | 2.7 | 2.16.x+ | Low | Developer tooling, outdated |
+| javax.validation | (via Spring Boot 2.1.x) | jakarta.validation | **Medium** | Uses javax namespace, needs Jakarta migration |
 
-### 5. Netflix Hystrix (shop module)
-- **File**: `shop/pom.xml` line 50 (`spring-cloud-starter-hystrix`)
-- **Status**: Deprecated / Maintenance mode (Netflix stopped development)
-- **Impact**: No new features or bug fixes
-- **Upgrade Path**: Replace with Spring Cloud Circuit Breaker + Resilience4j
+### 3. `instruments` Module
 
-### 6. Java 8 Target (shop, stock modules)
-- **Files**: `shop/pom.xml` line 21 (`<java.version>1.8</java.version>`), `stock/pom.xml` line 20
-- **Status**: Oracle Java 8 extended support ending; open-source support available but ecosystem moving to 17+
-- **Impact**: Cannot use modern Java features, Spring Boot 3.x requires Java 17+
-- **Upgrade Path**: Java 8 → 17 or 21
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| Spring Boot | 2.7.5 | 3.2.x+ | **Medium** | Approaching EOL |
+| OpenTelemetry annotations | 1.19.2-alpha | 2.x+ (stable) | **Medium** | Pre-release alpha version |
+| Java target | 17 | 21+ | Low | Still supported but not latest LTS |
+| javax.persistence | (via Spring Boot 2.7.x) | jakarta.persistence | **Medium** | Uses javax namespace, needs Jakarta migration |
 
-### 7. javax.persistence (instruments, stock modules)
-- **Files**: `instruments/src/main/java/.../model/Instrument.java` lines 4-8, `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java` lines 6-7, `stock/src/main/java/.../model/Stock.java` lines 5-6
-- **Status**: Superseded by Jakarta EE (`jakarta.persistence`)
-- **Impact**: Incompatible with Spring Boot 3.x
+### 4. `products` Module
 
-### 8. javax.validation (stock module)
-- **File**: `stock/src/main/java/.../services/StockService.java` line 14
-- **Status**: Superseded by Jakarta EE (`jakarta.validation`)
-- **Impact**: Incompatible with Spring Boot 3.x
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| Spring Boot | 3.2.2 | 3.2.x+ (latest patch) | Low | Recent version, patch updates available |
+| OpenTelemetry annotations | 2.2.0 | 2.x+ (stable) | Low | Reasonably current |
+| Java target | 17 | 21+ | Low | Still supported |
 
-### 9. JUnit 3.8.1 (root POM)
-- **File**: `pom.xml` line 19
-- **Status**: Extremely outdated (released ~2005). Current version: JUnit 5.10+
-- **Impact**: Missing modern testing features (parameterized tests, extensions, assertions)
-- **Upgrade Path**: JUnit 3 → JUnit 5 (Jupiter)
+### 5. `conductors` Module
 
-## 🟠 Medium Severity — Outdated Dependencies
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| Spring Boot | 3.2.2 | 3.2.x+ (latest patch) | Low | Recent version |
+| Java target | 17 | 21+ | Low | Still supported |
 
-### 10. Log4j 2.6.1 (shop, test modules)
-- **Files**: `shop/pom.xml` lines 36-41, `test/pom.xml` lines 10-17
-- **Status**: **Critical security vulnerability** — CVE-2021-44228 (Log4Shell) affects Log4j 2.x < 2.17.0
-- **Impact**: Remote code execution vulnerability
-- **Upgrade Path**: Log4j 2.6.1 → 2.23+ (or migrate to SLF4J/Logback)
+### 6. `annotator` Module
 
-### 11. commons-httpclient 3.1 (test module)
-- **File**: `test/pom.xml` line 20
-- **Status**: End of Life (project discontinued in 2007)
-- **Impact**: No security updates, missing modern HTTP features
-- **Upgrade Path**: commons-httpclient 3.1 → Apache HttpComponents HttpClient 5.x (or Java 11+ HttpClient)
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| JavaParser | 3.23.1 | 3.25.x+ | Low | Moderately outdated |
+| OpenTelemetry annotations | 1.19.1-alpha | 2.x+ (stable) | **Medium** | Pre-release alpha version |
+| exec-maven-plugin | 3.1.0 | 3.2.x+ | Low | Moderately outdated |
+| Java target | 17 | 21+ | Low | Still supported |
 
-### 12. nekohtml 1.9.22 (shop module)
-- **File**: `shop/pom.xml` line 57
-- **Status**: Outdated HTML parser, used for Thymeleaf LEGACYHTML5 mode
-- **Impact**: Limited maintenance
-- **Upgrade Path**: Remove by upgrading Thymeleaf (modern Thymeleaf doesn't need nekohtml)
+### 7. Root POM
 
-### 13. OpenTelemetry Annotations (shop, instruments, annotator)
-- **Files**: `shop/pom.xml` line 44 (1.19.2-alpha), `instruments/pom.xml` line 53 (1.19.2-alpha), `annotator/pom.xml` line 14 (1.19.1-alpha), `products/pom.xml` line 22 (2.2.0)
-- **Status**: Alpha versions; inconsistent across modules
-- **Impact**: API changes in stable releases
-- **Upgrade Path**: Standardize all to 2.x stable release
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| JUnit | 3.8.1 | 5.10.x+ (JUnit 5) | **Medium** | Extremely outdated, 3 major versions behind |
 
-### 14. Cucumber 1.2.5 (stock module)
-- **File**: `stock/pom.xml` lines 36-48
-- **Status**: Extremely outdated; `info.cukes` group is abandoned, replaced by `io.cucumber`
-- **Impact**: Missing modern BDD testing features
-- **Upgrade Path**: info.cukes:cucumber-* 1.2.5 → io.cucumber:cucumber-* 7.x
+## javax → Jakarta Namespace Migration
 
-### 15. JavaParser 3.23.1 (annotator module)
-- **File**: `annotator/pom.xml` line 12
-- **Status**: Newer versions available (3.26+)
-- **Impact**: Missing recent Java syntax support
-- **Upgrade Path**: JavaParser 3.23.1 → 3.26+
+The `shop` (Spring Boot 1.5.x), `stock` (Spring Boot 2.1.x), and `instruments` (Spring Boot 2.7.x) modules all use the `javax.*` namespace for persistence, validation, and annotations. Spring Boot 3.x requires the `jakarta.*` namespace. This is a mandatory migration step when upgrading to Spring Boot 3.x.
 
-## Cross-References
+**Affected packages:**
+- `javax.persistence.*` → `jakarta.persistence.*` (instruments, stock)
+- `javax.validation.*` → `jakarta.validation.*` (stock)
+- `javax.annotation.*` → `jakarta.annotation.*` (instruments, stock)
+- `javax.naming.*` → `jakarta.naming.*` (shop — `NoPermissionException`)
 
-- [Technical Debt Summary](summary.md)
+## Related Documents
+
+- [Summary](summary.md)
+- [Maintenance Burden](maintenance-burden.md)
 - [Remediation Plan](remediation-plan.md)
-- [Dependencies](../architecture/dependencies.md)
+- [Root-level Technical Debt Report](../technical-debt-report.md)
+
+---
+
+[← Back to README](../README.md)

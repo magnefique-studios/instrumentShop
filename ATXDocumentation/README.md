@@ -1,70 +1,60 @@
-# ATXDocumentation — JavaShop Codebase Analysis
+# Java Instrument Shop — Comprehensive Codebase Analysis
+
+## Executive Summary
+
+This documentation provides a complete analysis of the **Java Instrument Shop**, a multi-module Spring Boot microservices application for managing musical instrument inventory. The analysis identified **significant technical debt** including 3 modules on end-of-life Spring Boot versions, a critical Log4j vulnerability, SQL injection, and deprecated libraries. See the [Technical Debt Report](technical-debt-report.md) for the AWS Transformation Recommendation and full findings.
+
+---
 
 ## 📋 Table of Contents
 
-### Root-Level Documents
-- [Project Overview](project-overview.md) — Technology stack, module summary, and key characteristics
-- [Technical Debt Report](technical-debt-report.md) — **⚠️ Start here for AWS Transformation recommendations and critical findings**
+### Overview
+- [Project Overview](project-overview.md) — Project summary, technology stack, and key findings
+- [Technical Debt Report](technical-debt-report.md) — ⭐ **Start here** — AWS Transformation Recommendation + executive summary
 
-### 🏗️ Architecture (`architecture/`)
-- [System Overview](architecture/system-overview.md) — Microservices architecture, deployment model, key decisions
-- [Components](architecture/components.md) — Detailed breakdown of all 7 modules with class-level documentation
-- [Dependencies](architecture/dependencies.md) — Internal and external dependency mapping with version status
-- [Patterns](architecture/patterns.md) — Design patterns used and anti-patterns identified
+### 🏗️ Architecture
+- [System Overview](architecture/system-overview.md) — High-level architecture, technology stack, deployment model
+- [Components](architecture/components.md) — Service descriptions, responsibilities, and key classes
+- [Dependencies](architecture/dependencies.md) — Internal service graph and external library versions
+- [Patterns](architecture/patterns.md) — Design patterns, architectural styles, and anti-patterns
 
-### 🔄 Behavior (`behavior/`) *(Early Access)*
-- [Business Logic](behavior/business-logic.md) — Core business rules for each module
-- [Workflows](behavior/workflows.md) — Application-level process flows (product browsing, scoring, routing)
-- [Decision Logic](behavior/decision-logic.md) — All decision points (location routing, locale filtering, etc.)
-- [Error Handling](behavior/error-handling.md) — Exception patterns, Hystrix fallbacks, silent catch blocks
+### 🔄 Behavior *(Early Access)*
+- [Business Logic](behavior/business-logic.md) — Business rules for every major component
+- [Workflows](behavior/workflows.md) — Application-level process flows
+- [Decision Logic](behavior/decision-logic.md) — All decision points and branching logic
+- [Error Handling](behavior/error-handling.md) — Exception patterns and recovery strategies
 
-### ⚠️ Technical Debt (`technical-debt/`)
-- [Summary](technical-debt/summary.md) — Overview of 23 identified debt items by severity and module
-- [Outdated Components](technical-debt/outdated-components.md) — Detailed analysis of EOL/deprecated components
-- [Maintenance Burden](technical-debt/maintenance-burden.md) — Areas requiring significant maintenance attention
-- [Remediation Plan](technical-debt/remediation-plan.md) — Prioritized action items with upgrade paths
+### ⚠️ Technical Debt
+- [Technical Debt Report](technical-debt-report.md) — Root-level summary with AWS recommendation
+- [Summary](technical-debt/summary.md) — Categorized overview
+- [Outdated Components](technical-debt/outdated-components.md) — Module-by-module dependency analysis
+- [Maintenance Burden](technical-debt/maintenance-burden.md) — High-maintenance areas
+- [Remediation Plan](technical-debt/remediation-plan.md) — Prioritized action items
 
-### 📚 Reference (`reference/`)
-- [Program Structure](reference/program-structure.md) — Complete package/class hierarchy for all modules
-- [Interfaces](reference/interfaces.md) — REST API endpoints and repository interfaces
-- [Data Models](reference/data-models.md) — All entity classes, DTOs, and domain models
-- [API Reference](reference/api-reference.md) — Detailed API documentation with request/response examples
+### 📚 Reference
+- [Program Structure](reference/program-structure.md) — Complete class hierarchy
+- [Interfaces](reference/interfaces.md) — REST endpoints and method signatures
+- [Data Models](reference/data-models.md) — Entity and DTO definitions
+- [API Reference](reference/api-reference.md) — Complete HTTP API specification
+- [Modules](reference/modules.md) — Module organization and dependencies
 
-### 📊 Analysis (`analysis/`)
-- [Code Metrics](analysis/code-metrics.md) — Lines of code, class counts, quality indicators
-- [Complexity Analysis](analysis/complexity-analysis.md) — High-complexity hotspots and duplication analysis
-- [Dependency Analysis](analysis/dependency-analysis.md) — Internal/external dependency mapping and criticality
-- [Security Patterns](analysis/security-patterns.md) — SQL injection, Log4j vulnerability, credential handling
+### 📊 Analysis
+- [Code Metrics](analysis/code-metrics.md) — Lines of code, complexity measurements
+- [Complexity Analysis](analysis/complexity-analysis.md) — Module complexity ranking
+- [Dependency Analysis](analysis/dependency-analysis.md) — Internal and external dependency mapping
+- [Security Patterns](analysis/security-patterns.md) — Security findings and patterns
+- [Tech Debt](analysis/tech-debt.md) — Cross-reference summary
 
-### 📐 Diagrams (`diagrams/`)
-- [Structural Diagrams](diagrams/structural/component-diagrams.md) — Component, class, and package diagrams
-- [Behavioral Diagrams](diagrams/behavioral/sequence-diagrams.md) — Sequence, activity, and data flow diagrams
-- [Architecture Diagrams](diagrams/architecture/system-context.md) — System context, service map, security boundaries
+### 📐 Diagrams
+- [Component Diagrams](diagrams/structural/component-diagrams.md) — Service relationships and class dependencies
+- [Sequence Diagrams](diagrams/behavioral/sequence-diagrams.md) — Key interaction flows
+- [System Context](diagrams/architecture/system-context.md) — Deployment architecture
 
-### 🚀 Migration (`migration/`)
-- [Component Order](migration/component-order.md) — Recommended migration sequence (stock → instruments → products → conductors → shop)
-- [Test Specifications](migration/test-specifications.md) — Service-level and integration test cases
-- [Validation Criteria](migration/validation-criteria.md) — Checklist for successful migration
+### 🔧 Specialized
+- [Database Schemas](specialized/database-schemas.md) — PostgreSQL and H2 table definitions
+- [Deployment Configuration](specialized/deployment-configuration.md) — Docker Compose setup
 
-### 📁 Specialized (`specialized/`)
-- [Database Schemas](specialized/database-schemas.md) — PostgreSQL and H2 schemas, JPA mappings
-- [Deployment Configuration](specialized/deployment-configuration.md) — Docker Compose setup, volumes, networks
-
----
-
-## Quick Navigation
-
-| I want to... | Go to... |
-|--------------|----------|
-| Understand the project | [Project Overview](project-overview.md) |
-| See transformation recommendations | [Technical Debt Report](technical-debt-report.md) |
-| Review architecture | [System Overview](architecture/system-overview.md) |
-| Check security issues | [Security Patterns](analysis/security-patterns.md) |
-| Plan a migration | [Component Order](migration/component-order.md) |
-| Understand business logic | [Business Logic](behavior/business-logic.md) |
-| View API endpoints | [API Reference](reference/api-reference.md) |
-| See dependency versions | [Dependencies](architecture/dependencies.md) |
-
----
-
-*Generated by AWS Comprehensive Codebase Analysis Transformation*
+### 🚀 Migration
+- [Component Order](migration/component-order.md) — Recommended migration sequence
+- [Test Specifications](migration/test-specifications.md) — Test cases for validation
+- [Validation Criteria](migration/validation-criteria.md) — Success criteria for migration

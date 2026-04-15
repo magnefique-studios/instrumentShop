@@ -1,71 +1,96 @@
-# Maintenance Burden
+# Maintenance Burden Analysis
 
-## Areas Requiring Significant Maintenance Attention
+## Overview
 
-### 1. Framework Version Fragmentation
-- **Impact**: High
-- **Description**: The codebase runs 4 different Spring Boot versions (1.5.19, 2.1.3, 2.7.5, 3.2.2) and 3 different Java versions (8, 11, 17) across its modules. This fragmentation means:
-  - Each module may require different build toolchains
-  - Security patches must be tracked independently per module
-  - Shared libraries/patterns cannot be standardized
-  - Developer onboarding requires familiarity with multiple framework generations
+The Java Instrument Shop project carries a significant maintenance burden due to framework fragmentation, deprecated libraries, and code quality hotspots. This document identifies the areas requiring the most maintenance attention.
 
-### 2. Code Duplication Between Products and Conductors
-- **Impact**: Medium
-- **Description**: The `conductors` module is a near-complete copy of the `products` module:
-  - `ConductorsService` has identical product data as `ProductService`
-  - `ProductFilterService` exists in both modules with the same structure (though conductors has most methods commented out)
-  - `Product` model is duplicated
-  - `FilteredProducts` mirrors `FilteredInstrument` from instruments module
-- **Risk**: Bug fixes or changes must be applied to both modules
+---
 
-### 3. Workshop/Training Code in Production Codebase
-- **Impact**: Medium
-- **Description**: The codebase contains intentional defects and training code that would be maintenance liabilities in a production setting:
-  - `ProductFilterService` in products module contains ~100+ sequential `myCoolFunction*()` calls with `Thread.sleep()` — intentionally designed for latency debugging workshops
-  - `Exercises.java` implements a 15-exercise scoring system with external HTTP calls
-  - `PropertiesUpdater.java` manages file-based exercise scores
-  - `getMyInt()` always returns 999, causing `myCoolFunction234234234()` to introduce 966-1166ms latency for Colorado location
+## 1. Mixed Spring Boot Versions — Severity: High
 
-### 4. Inconsistent Error Handling
-- **Impact**: Medium
-- **Description**: Error handling patterns vary significantly across modules:
-  - Shop: Hystrix fallbacks return empty collections silently
-  - Instruments: Some exceptions are caught and logged, others propagated
-  - Products: All exceptions in ProductFilterService are silently swallowed with empty catch blocks
-  - Stock: `@ExceptionHandler` annotation used for `StockNotFoundException`
-  - `InstrumentStocksService.getStock()` returns `null` instead of throwing an exception
+**Impact**: The project runs four different Spring Boot versions across its modules:
 
-### 5. Dead/Commented Code
-- **Impact**: Low
-- **Description**: Significant amounts of commented-out code throughout:
-  - `HomeController.checkIfRestricted()` — entire HTTP client logic commented out (lines 98-128)
-  - `StockService.getStock()` — commented out (lines 27-30)
-  - `InstrumentStocksService.getStock()` — body commented out, returns null
-  - Datadog agent configuration in `docker-compose.yml` — fully commented out
-  - Multiple Dockerfile entrypoint references in `Instrumented - Dockerfile Entrypoints.txt`
-  - Conductors `ProductFilterService` — most method bodies are commented out
+| Module | Spring Boot Version | Java Version | Spring Boot Generation |
+|--------|-------------------|--------------|----------------------|
+| shop | 1.5.19.RELEASE | 1.8 | 1st Gen (EOL) |
+| stock | 2.1.3.RELEASE | 1.8 | 2nd Gen (EOL) |
+| instruments | 2.7.5 | 17 | 2nd Gen (approaching EOL) |
+| products | 3.2.2 | 17 | 3rd Gen (current) |
+| conductors | 3.2.2 | 17 | 3rd Gen (current) |
 
-### 6. Hardcoded Values and Configuration
-- **Impact**: Medium
-- **Description**: Multiple hardcoded values that should be externalized:
-  - PostgreSQL credentials in `docker-compose.yml`: `instruments/instruments`
-  - Service discovery via hardcoded hostnames and ports in `application.properties`
-  - `ConductorsController` hardcodes `location = "Oregon"` overriding the user-provided parameter
-  - `ProductService` in products module uses hardcoded product data
-  - `DataGenerator` in stock module uses hardcoded stock data
+**Maintenance cost**: Developers must maintain expertise across three different Spring Boot generations. Dependency upgrades, security patches, and configuration changes differ significantly between versions. Shared patterns and libraries cannot be unified.
 
-### 7. Missing Test Coverage
-- **Impact**: Medium
-- **Description**: Only one test file exists in the entire codebase:
-  - `shop/src/test/java/.../ShopTest.java` — likely a basic Spring Boot context test
-  - Stock module has Cucumber dependencies but test files were not found in source paths
-  - Products, instruments, and conductors have no test files
-  - The `test` module is a traffic generator, not a test suite
+---
 
-## Cross-References
+## 2. Deprecated Library Dependencies — Severity: High
 
-- [Technical Debt Summary](summary.md)
+### Netflix Hystrix (shop module)
+- Hystrix entered maintenance mode in 2018 and is no longer actively developed
+- No new features, security patches, or bug fixes
+- The Spring Cloud Hystrix starter was removed in newer Spring Cloud releases
+- Replacement: Resilience4j or Spring Cloud Circuit Breaker
+
+### Spring Cloud Dalston (shop module)
+- Dalston is several major releases behind current Spring Cloud
+- Incompatible with Spring Boot 2.x and above
+- Blocks the shop module from being upgraded independently
+
+### Cucumber info.cukes (stock module)
+- The `info.cukes` group ID has been deprecated and migrated to `io.cucumber`
+- Version 1.2.5 lacks modern Cucumber features and has known issues
+- The community has fully moved to `io.cucumber` 7.x+
+
+---
+
+## 3. Code Quality Hotspots — Severity: Medium
+
+### ProductFilterService (products and conductors modules)
+- **~600 lines** of highly repetitive code with 30+ `myCoolFunction*()` methods
+- Each method follows an identical pattern: declare `sleepy` variable → `Thread.sleep()` → empty `catch` block
+- Contains intentional latency injection for Colorado location via `myCoolFunction234234234()` with magic number `999`
+- Significant maintenance burden: any change requires understanding the intentional vs. unintentional behavior
+
+### FindInstrumentRepositoryImpl (instruments module)
+- **SQL injection vulnerability** in `findInstrumentByID()`: concatenates user input directly into HQL query
+- **Cartesian product query** in `findInstruments()`: `SELECT * FROM instruments_for_sale, instruments_for_sale_chicago` produces a cross join with no WHERE clause
+- Both methods represent data access anti-patterns that are difficult to maintain safely
+
+### HomeController (shop module)
+- Contains commented-out HTTP call with hardcoded external URL (Lambda function)
+- Mixes concerns: user management, exercise scoring, permission checking, latency tracking all in one controller
+- Uses static mutable fields (`s_coloradoLatency`, `s_utahLatency`) for cross-request state
+
+---
+
+## 4. Configuration and Naming Issues — Severity: Low
+
+| Issue | Module | File | Impact |
+|-------|--------|------|--------|
+| Endpoint typo `/insruments` | stock | `StockResource.java` | API consumers must use misspelled URL |
+| Location hardcoded to "Oregon" | conductors | `ConductorsController.java` | Incoming `location` parameter is ignored |
+| Typo `/instrumemnts` | shop | `StockRepo.java` | Calls misspelled endpoint on stock service |
+| Duplicate spring-boot-starter-web | instruments | `pom.xml` | Declared twice (once with exclusion, once without) |
+| Redundant logger lines | instruments | `InstrumentsApplication.java` | Same log message repeated 6 times |
+
+---
+
+## 5. Testing Infrastructure — Severity: Medium
+
+- Root POM depends on **JUnit 3.8.1**, which is 3 major versions behind
+- Only one test file exists: `shop/src/test/java/.../ShopTest.java`
+- Cucumber tests in stock module use deprecated `info.cukes` dependency
+- No integration tests for inter-service HTTP communication
+- No test coverage for the annotator module
+
+---
+
+## Related Documents
+
+- [Summary](summary.md)
 - [Outdated Components](outdated-components.md)
 - [Remediation Plan](remediation-plan.md)
-- [Architectural Patterns](../architecture/patterns.md)
+- [Root-level Technical Debt Report](../technical-debt-report.md)
+
+---
+
+[← Back to README](../README.md)

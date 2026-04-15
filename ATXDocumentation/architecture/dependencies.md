@@ -1,119 +1,104 @@
 # Dependencies
 
-## Internal Dependencies (Inter-Service Communication via REST)
+## Internal Service Dependency Graph
 
 ```
-shop ──REST──▶ products    (GET /products?location=)
-shop ──REST──▶ conductors  (GET /conductors?location=)  [Utah only]
-shop ──REST──▶ stock       (GET /legacy, GET /insruments)
-shop ──REST──▶ instruments (GET /instruments?location=)
-instruments ──JDBC──▶ PostgreSQL (instruments_for_sale, instruments_for_sale_chicago)
-stock ──H2──▶ H2 In-Memory Database
+shop (8010)
+├── → products (8020)    [HTTP GET /products?location=...]
+├── → conductors (8050)  [HTTP GET /conductors?location=... (Utah only)]
+├── → stock (8030)       [HTTP GET /legacy, /instrumemnts]
+└── → instruments (8040) [HTTP GET /instruments?location=...]
+
+instruments (8040)
+└── → postgresDB (5432)  [JDBC postgresql://postgresDB:5432/instruments]
+
+conductors (8050)
+└── (no downstream service calls)
+
+products (8020)
+└── (no downstream service calls)
+
+stock (8030)
+└── (no downstream service calls, uses embedded H2)
 ```
 
-## External Dependencies by Module
+## External Library Dependencies by Module
 
-### Root POM
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| junit:junit | 3.8.1 | test | ⚠️ **Extremely outdated** (current: JUnit 5.x) |
+### shop
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| spring-boot-starter-parent | 1.5.19.RELEASE | parent |
+| spring-cloud-dependencies | Dalston.SR5 | BOM |
+| spring-boot-starter-thymeleaf | (managed) | compile |
+| spring-boot-starter-actuator | (managed) | compile |
+| spring-cloud-starter-hystrix | (managed) | compile |
+| spring-cloud-starter-eureka | (managed) | compile |
+| aspectjweaver | 1.9.19 | compile |
+| log4j-api | 2.6.1 | compile |
+| log4j-core | 2.6.1 | compile |
+| opentelemetry-instrumentation-annotations | 1.19.2-alpha | compile |
+| nekohtml | 1.9.22 | compile |
 
-### Shop Module (Spring Boot 1.5.19)
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| spring-boot-starter-parent | 1.5.19.RELEASE | parent | ⚠️ **EOL** (Aug 2019) |
-| spring-cloud-dependencies | Dalston.SR5 | BOM | ⚠️ **EOL** |
-| spring-cloud-starter-hystrix | (managed) | runtime | ⚠️ **Deprecated** (Netflix Hystrix in maintenance) |
-| spring-cloud-starter-eureka | (managed) | runtime | ⚠️ **Deprecated** |
-| spring-boot-starter-thymeleaf | (managed) | runtime | OK (version tied to SB 1.5) |
-| spring-boot-starter-actuator | (managed) | runtime | OK (version tied to SB 1.5) |
-| aspectjweaver | 1.9.19 | runtime | OK |
-| log4j-api | 2.6.1 | runtime | 🔴 **CRITICAL SECURITY** (CVE-2021-44228) |
-| log4j-core | 2.6.1 | runtime | 🔴 **CRITICAL SECURITY** (CVE-2021-44228) |
-| opentelemetry-instrumentation-annotations | 1.19.2-alpha | runtime | ⚠️ Alpha version, newer available |
-| nekohtml | 1.9.22 | runtime | ⚠️ Outdated HTML parser |
-| maven-jar-plugin | 3.0.0 | build | ⚠️ Outdated |
+### stock
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| spring-boot-starter-parent | 2.1.3.RELEASE | parent |
+| spring-boot-starter-web | (managed) | compile |
+| spring-boot-starter-data-jpa | (managed) | compile |
+| spring-boot-starter-actuator | (managed) | compile |
+| h2 | (managed) | compile |
+| spring-boot-starter-test | (managed) | test |
+| hamcrest-core | 2.1 | compile |
+| cucumber-java | 1.2.5 | compile |
+| cucumber-junit | 1.2.5 | compile |
+| cucumber-spring | 1.2.5 | compile |
 
-### Products Module (Spring Boot 3.2.2)
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| spring-boot-starter-parent | 3.2.2 | parent | ✅ Recent |
-| spring-boot-starter-web | (managed) | runtime | ✅ |
-| spring-boot-docker-compose | (managed) | runtime | ✅ |
-| opentelemetry-instrumentation-annotations | 2.2.0 | runtime | ✅ Recent |
+### instruments
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| spring-boot-starter-parent | 2.7.5 | parent |
+| spring-boot-starter-web | (managed) | compile |
+| spring-boot-starter-data-jpa | (managed) | compile |
+| spring-boot-starter-actuator | (managed) | compile |
+| spring-boot-starter-log4j2 | (managed) | compile |
+| spring-boot-starter-test | (managed) | test |
+| postgresql | (managed) | runtime |
+| hamcrest-core | (managed) | compile |
+| opentelemetry-instrumentation-annotations | 1.19.2-alpha | compile |
 
-### Stock Module (Spring Boot 2.1.3)
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| spring-boot-starter-parent | 2.1.3.RELEASE | parent | ⚠️ **EOL** |
-| spring-boot-starter-web | (managed) | runtime | ⚠️ EOL version |
-| spring-boot-starter-data-jpa | (managed) | runtime | ⚠️ EOL version |
-| h2 | (managed) | runtime | OK |
-| spring-boot-starter-actuator | (managed) | runtime | ⚠️ EOL version |
-| hamcrest-core | 2.1 | test | OK |
-| cucumber-java (info.cukes) | 1.2.5 | test | ⚠️ **Outdated** (current: io.cucumber 7.x) |
-| cucumber-junit (info.cukes) | 1.2.5 | test | ⚠️ **Outdated** |
-| cucumber-spring (info.cukes) | 1.2.5 | test | ⚠️ **Outdated** |
-| versions-maven-plugin | 2.7 | build | OK |
+### products
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| spring-boot-starter-parent | 3.2.2 | parent |
+| spring-boot-starter-web | (managed) | compile |
+| spring-boot-docker-compose | (managed) | runtime/optional |
+| opentelemetry-instrumentation-annotations | 2.2.0 | compile |
 
-### Instruments Module (Spring Boot 2.7.5)
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| spring-boot-starter-parent | 2.7.5 | parent | ⚠️ **EOL** (Nov 2023) |
-| spring-boot-starter-web | (managed) | runtime | ⚠️ EOL version |
-| spring-boot-starter-data-jpa | (managed) | runtime | ⚠️ EOL version |
-| spring-boot-starter-log4j2 | (managed) | runtime | ⚠️ EOL version |
-| postgresql | (managed) | runtime | OK (managed by SB parent) |
-| spring-boot-starter-actuator | (managed) | runtime | ⚠️ EOL version |
-| opentelemetry-instrumentation-annotations | 1.19.2-alpha | runtime | ⚠️ Alpha, inconsistent with Products |
-| hamcrest-core | (managed) | test | OK |
+### conductors
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| spring-boot-starter-parent | 3.2.2 | parent |
+| spring-boot-starter-web | (managed) | compile |
+| spring-boot-docker-compose | (managed) | runtime/optional |
 
-### Conductors Module (Spring Boot 3.2.2)
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| spring-boot-starter-parent | 3.2.2 | parent | ✅ Recent |
-| spring-boot-starter-web | (managed) | runtime | ✅ |
-| spring-boot-docker-compose | (managed) | runtime | ✅ |
+### annotator
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| javaparser-core | 3.23.1 | compile |
+| opentelemetry-instrumentation-annotations | 1.19.1-alpha | compile |
+| exec-maven-plugin | 3.1.0 | build |
 
-### Annotator Module (No Spring Boot)
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| javaparser-core | 3.23.1 | runtime | ⚠️ Newer versions available |
-| opentelemetry-instrumentation-annotations | 1.19.1-alpha | runtime | ⚠️ Alpha, inconsistent |
+### root POM
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| junit | 3.8.1 | test |
 
-### Test Module (No Spring Boot)
-| Dependency | Version | Scope | Status |
-|-----------|---------|-------|--------|
-| log4j-api | 2.6.1 | runtime | 🔴 **CRITICAL SECURITY** |
-| log4j-core | 2.6.1 | runtime | 🔴 **CRITICAL SECURITY** |
-| commons-httpclient | 3.1 | runtime | ⚠️ **EOL** (replaced by Apache HttpComponents) |
-
-## Infrastructure Dependencies
-
-| Component | Version | Status |
-|-----------|---------|--------|
-| PostgreSQL | 13.1-alpine | ⚠️ EOL (Nov 2025 approaching) |
-| Redis | latest | ✅ (unused by application code) |
-| Docker Compose | v3 format | OK |
-
-## Dependency Graph
-
-```
-                    ┌──────────────┐
-                    │  Root POM    │
-                    │  junit 3.8.1 │
-                    └──────┬───────┘
-         ┌─────────┬──────┼──────┬──────────┬──────────┬─────────┐
-         ▼         ▼      ▼      ▼          ▼          ▼         ▼
-      ┌──────┐ ┌──────┐ ┌────┐ ┌─────────┐ ┌──────────┐ ┌─────┐ ┌────┐
-      │ shop │ │stock │ │prod│ │instrmts │ │conductors│ │annot│ │test│
-      │SB1.5 │ │SB2.1 │ │SB3 │ │SB2.7    │ │SB3.2     │ │Java │ │Java│
-      │Java8 │ │Java8 │ │J17 │ │Java17   │ │Java17    │ │17   │ │11  │
-      └──────┘ └──────┘ └────┘ └─────────┘ └──────────┘ └─────┘ └────┘
-```
-
-## Cross-References
+## Related Documents
 
 - [System Overview](system-overview.md) | [Components](components.md) | [Patterns](patterns.md)
-- [Technical Debt - Outdated Components](../technical-debt/outdated-components.md)
 - [Dependency Analysis](../analysis/dependency-analysis.md)
+- [Outdated Components](../technical-debt/outdated-components.md)
+
+---
+
+[← Back to README](../README.md)

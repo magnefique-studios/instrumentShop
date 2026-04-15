@@ -1,77 +1,69 @@
 # Test Specifications
 
-## Service-Level Test Cases
+## Test Cases for Migration Validation
 
-### Stock Service Tests
+### Stock Module Tests
 
-| Test Case | Endpoint | Method | Expected Result |
-|-----------|----------|--------|-----------------|
-| T-STOCK-01 | `/legacy` | GET | HTTP 200, returns 5 stock items |
-| T-STOCK-02 | `/legacy` | GET | Response contains productId, sku, amountAvailable fields |
-| T-STOCK-03 | `/insruments` | GET | HTTP 200, returns instrument stock list |
-| T-STOCK-04 | `/healthcheck` | GET | HTTP 200, "OK" |
-| T-STOCK-05 | H2 Database | Startup | DataGenerator creates 5 records with correct data |
+| Test ID | Description | Endpoint | Expected Result |
+|---------|-------------|----------|----------------|
+| ST-01 | Health check responds | GET /healthcheck | HTTP 200, body contains "200" |
+| ST-02 | Legacy stocks returns data | GET /legacy | HTTP 200, JSON array with 5 stock records |
+| ST-03 | Instrument stocks returns data | GET /insruments | HTTP 200, JSON array |
+| ST-04 | Stock record has required fields | GET /legacy | Each record has productId, sku, amountAvailable |
+| ST-05 | Synthetic data generated on startup | GET /legacy | Records include productIds 1-5 |
 
-### Instruments Service Tests
+### Instruments Module Tests
 
-| Test Case | Endpoint | Method | Expected Result |
-|-----------|----------|--------|-----------------|
-| T-INST-01 | `/instruments?location=California` | GET | HTTP 200, returns all instruments |
-| T-INST-02 | `/instruments?location=Oregon` | GET | HTTP 200, returns empty list |
-| T-INST-03 | `/instruments?location=Chicago` | GET | HTTP 200, returns instruments (cross-table query executes) |
-| T-INST-04 | `/stocks` | GET | HTTP 200, returns instrument stocks |
-| T-INST-05 | `/healthcheck` | GET | HTTP 200, "OK" |
-| T-INST-06 | PostgreSQL | Startup | Connection successful, tables exist |
+| Test ID | Description | Endpoint | Expected Result |
+|---------|-------------|----------|----------------|
+| IN-01 | Health check responds | GET /healthcheck | HTTP 200 |
+| IN-02 | Get instruments default location | GET /instruments?location=California | HTTP 200, JSON array of instruments |
+| IN-03 | Get instruments Chicago | GET /instruments?location=Chicago | HTTP 200, JSON array (non-empty) |
+| IN-04 | Get instruments Oregon | GET /instruments?location=Oregon | HTTP 200, empty array |
+| IN-05 | Get stocks | GET /stocks | HTTP 200, JSON array |
+| IN-06 | Instrument has required fields | GET /instruments?location=California | Each has id, title, price, instrument_type, condition |
+| IN-07 | PostgreSQL connection works | GET /instruments?location=California | Returns data from instruments_for_sale table |
 
-### Products Service Tests
+### Shop Module Tests
 
-| Test Case | Endpoint | Method | Expected Result |
-|-----------|----------|--------|-----------------|
-| T-PROD-01 | `/products?location=California` | GET | HTTP 200, returns 5 products |
-| T-PROD-02 | `/products?location=Colorado` | GET | HTTP 200, returns 5 products (with latency) |
-| T-PROD-03 | `/products/healthcheck` | GET | HTTP 200, "OK" |
-| T-PROD-04 | Response Schema | GET | Products contain id, name, description, price |
+| Test ID | Description | Endpoint | Expected Result |
+|---------|-------------|----------|----------------|
+| SH-01 | Health check responds | GET /healthcheck | HTTP 200 |
+| SH-02 | Homepage renders | GET / | HTTP 200, HTML content |
+| SH-03 | Homepage with location | GET /?location=California | HTTP 200, HTML with products |
+| SH-04 | Utah routes to conductors | GET /?location=Utah | HTTP 200, products returned |
+| SH-05 | Products REST endpoint | GET /products | HTTP 200, JSON array |
+| SH-06 | Score endpoint | GET /score?exercise=0 | HTTP 200, JSON map |
+| SH-07 | Fallback on downstream failure | Stop products service, GET / | Page renders (empty products) |
 
-### Conductors Service Tests
+### Products Module Tests
 
-| Test Case | Endpoint | Method | Expected Result |
-|-----------|----------|--------|-----------------|
-| T-COND-01 | `/conductors?location=Utah` | GET | HTTP 200, returns 5 products |
-| T-COND-02 | `/conductors/healthcheck` | GET | HTTP 200, "OK" |
-| T-COND-03 | Response Schema | GET | Products contain id, name, description, price |
+| Test ID | Description | Endpoint | Expected Result |
+|---------|-------------|----------|----------------|
+| PR-01 | Health check responds | GET /products/healthcheck | HTTP 200 |
+| PR-02 | Get products by location | GET /products?location=California | HTTP 200, 5 products |
+| PR-03 | Colorado latency | GET /products?location=Colorado | Response delayed ~1 second |
 
-### Shop Service Tests
+### Conductors Module Tests
 
-| Test Case | Endpoint | Method | Expected Result |
-|-----------|----------|--------|-----------------|
-| T-SHOP-01 | `/` | GET | HTTP 200, HTML page with products and instruments |
-| T-SHOP-02 | `/?location=Utah` | GET | HTTP 200, products from Conductors service |
-| T-SHOP-03 | `/?location=California` | GET | HTTP 200, products from Products service |
-| T-SHOP-04 | `/products` | GET | HTTP 200, JSON product list |
-| T-SHOP-05 | `/score?exercise=0` | GET | HTTP 200, returns exercise scores HashMap |
-| T-SHOP-06 | `/healthcheck` | GET | HTTP 200, "OK" |
+| Test ID | Description | Endpoint | Expected Result |
+|---------|-------------|----------|----------------|
+| CO-01 | Health check responds | GET /conductors/healthcheck | HTTP 200 |
+| CO-02 | Get products | GET /conductors?location=Utah | HTTP 200, JSON array with products |
 
-## Integration Test Cases
+### Integration Tests
 
-| Test Case | Flow | Expected Result |
-|-----------|------|-----------------|
-| T-INT-01 | Shop → Products | Product data returned and displayed |
-| T-INT-02 | Shop → Conductors (Utah) | Utah routing returns Conductors product data |
-| T-INT-03 | Shop → Stock | Stock data merged with product data |
-| T-INT-04 | Shop → Instruments | Instrument data displayed |
-| T-INT-05 | Instruments → PostgreSQL | Database queries execute correctly |
-| T-INT-06 | All services health | All /healthcheck endpoints return 200 |
+| Test ID | Description | Steps | Expected Result |
+|---------|-------------|-------|----------------|
+| IT-01 | End-to-end product flow | Start all services → GET /?location=California | Products with stock data displayed |
+| IT-02 | End-to-end Utah flow | GET /?location=Utah | Products served via conductors |
+| IT-03 | End-to-end instrument flow | GET /?location=California | Instruments from PostgreSQL displayed |
+| IT-04 | Docker Compose deployment | `docker-compose up` | All health checks pass within 30 seconds |
 
-## Post-Migration Verification
-
-| Test Case | Description | Expected Result |
-|-----------|-------------|-----------------|
-| T-MIG-01 | javax → jakarta migration | No javax.persistence or javax.validation imports remain |
-| T-MIG-02 | Hystrix → Resilience4j | Circuit breaker fallbacks work correctly |
-| T-MIG-03 | Log4j → SLF4J/Logback | Logging works, no Log4j 2.6.1 on classpath |
-| T-MIG-04 | Java 17+ compatibility | All modules compile and run on Java 17+ |
-| T-MIG-05 | Spring Boot 3.x | All modules use Spring Boot 3.x parent |
-
-## Cross-References
+## Related Documents
 
 - [Component Order](component-order.md) | [Validation Criteria](validation-criteria.md)
+
+---
+
+[← Back to README](../README.md)

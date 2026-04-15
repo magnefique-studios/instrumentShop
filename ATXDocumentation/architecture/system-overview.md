@@ -1,65 +1,57 @@
 # System Overview
 
-## Architecture Style
+## Project Identity
 
-The JavaShop application follows a **microservices architecture** pattern with a frontend gateway service (shop) that communicates with backend services via synchronous REST calls using `RestTemplate`. The system uses **Netflix Hystrix** circuit breakers for resilience in the shop module.
+- **Name**: Java Instrument Shop ("InstrumenT-ation Shop")
+- **Group ID**: `com.splunk` (root), `com.shabushabu.javashop` (modules)
+- **Type**: Multi-module Maven project with microservices architecture
+- **Codebase Size**: ~4,805 lines of Java across 60 files, 7 Maven modules
 
-## High-Level Architecture
+## Technology Stack
 
-```
-┌──────────────┐
-│   Browser    │
-└──────┬───────┘
-       │ HTTP :8010
-┌──────▼───────────────────────────────────────┐
-│                SHOP (Gateway)                 │
-│  Spring Boot 1.5.19 / Java 8                 │
-│  Thymeleaf UI + Hystrix Circuit Breakers      │
-│  Port: 8010                                   │
-└──┬──────┬───────────┬────────────────────────┘
-   │      │           │
-   │ REST │ REST      │ REST
-   │      │           │
-┌──▼──┐ ┌─▼────────┐ ┌▼───────────┐  ┌────────────┐
-│PROD-│ │CONDUCTORS│ │INSTRUMENTS │  │   STOCK    │
-│UCTS │ │          │ │            │  │            │
-│8020 │ │  8050    │ │   8040     │  │   8030     │
-│SB   │ │  SB 3.2  │ │  SB 2.7   │  │  SB 2.1   │
-│3.2.2│ │  Java 17 │ │  Java 17  │  │  Java 8   │
-└─────┘ └──────────┘ └──┬────────┘  └────────────┘
-                         │ JDBC
-                    ┌────▼─────┐
-                    │PostgreSQL│
-                    │  13.1    │
-                    └──────────┘
-```
+| Layer | Technology | Details |
+|-------|-----------|---------|
+| **Language** | Java | 1.8 (shop, stock), 17 (products, conductors, instruments, annotator) |
+| **Framework** | Spring Boot | 1.5.19 / 2.1.3 / 2.7.5 / 3.2.2 (mixed versions) |
+| **Cloud** | Spring Cloud Dalston | shop module only (Hystrix, Eureka starters) |
+| **Database** | PostgreSQL 13.1 | instruments data (instruments_for_sale, instruments_for_sale_chicago) |
+| **In-Memory DB** | H2 | stock module (embedded, auto-generated data) |
+| **Cache** | Redis | Defined in docker-compose.yml |
+| **Build** | Maven | Multi-module POM structure |
+| **Containerization** | Docker / Docker Compose | All services containerized |
+| **Monitoring** | OpenTelemetry | Instrumentation annotations across modules |
+| **Template Engine** | Thymeleaf | shop module (LEGACYHTML5 mode) |
 
-## Service Communication
+## Deployment Architecture
 
-All inter-service communication is **synchronous HTTP/REST**:
-- **shop → products**: `GET /products?location={location}` (via RestTemplate)
-- **shop → conductors**: `GET /conductors?location={location}` (for Utah location only)
-- **shop → stock**: `GET /legacy` (via RestTemplate with Hystrix fallback)
-- **shop → instruments**: `GET /instruments?location={location}` (via RestTemplate with Hystrix fallback)
-- **instruments → PostgreSQL**: JDBC via Spring Data JPA / Hibernate
+All services are deployed as Docker containers within a shared Docker network (`instrument_shop`). Services communicate via HTTP REST using Docker service names for DNS resolution.
 
-## Deployment Model
+### Service Ports
 
-Docker Compose orchestrates all services on a shared Docker network (`instrument_shop`):
-- 5 application services (shop, products, conductors, stock, instruments)
-- 1 test traffic generator (shoptester)
-- 1 PostgreSQL database (postgresDB)
-- 1 Redis instance (currently unused by application code)
+| Service | Port | Description |
+|---------|------|-------------|
+| shop | 8010 | Frontend + API gateway |
+| products | 8020 | Product catalog |
+| stock | 8030 | Stock management |
+| instruments | 8040 | Instrument CRUD (JPA/PostgreSQL) |
+| conductors | 8050 | Filtered products (Utah-specific) |
+| postgresDB | 5432 | PostgreSQL database |
+| redis | (default) | Caching layer |
 
 ## Key Architectural Decisions
 
-1. **Gateway Pattern**: Shop acts as the single entry point, aggregating data from products, stock, and instruments services
-2. **Location-Based Routing**: Utah requests are routed to the Conductors service; all others go to Products
-3. **Circuit Breaker Pattern**: Hystrix provides fallbacks for service failures in InstrumentRepo and StockRepo
-4. **In-Memory Data**: Products and Conductors use hardcoded in-memory data stores (no database)
-5. **Mixed Persistence**: Instruments uses PostgreSQL; Stock uses H2 in-memory database
+1. **Microservices Architecture**: Each business domain is a separate Spring Boot application
+2. **Docker-based Service Discovery**: Services reference each other by Docker Compose service names (no Eureka registry despite dependency)
+3. **Synchronous HTTP Communication**: All inter-service calls are synchronous REST via RestTemplate
+4. **Circuit Breaker Pattern**: Hystrix used in shop module for fault tolerance on stock and instrument calls
+5. **Database per Service**: instruments uses PostgreSQL, stock uses H2 — each has its own data store
 
-## Cross-References
+## Related Documents
 
 - [Components](components.md) | [Dependencies](dependencies.md) | [Patterns](patterns.md)
-- [Project Overview](../project-overview.md)
+- [Deployment Configuration](../specialized/deployment-configuration.md)
+- [Technical Debt Report](../technical-debt-report.md)
+
+---
+
+[← Back to README](../README.md)
