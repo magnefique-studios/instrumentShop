@@ -1,69 +1,58 @@
 # Validation Criteria
 
-## Success Criteria for Migration
+[← Back to README](../README.md) | [Component Order](component-order.md) | [Test Specifications](test-specifications.md)
 
-### Per-Module Validation
+## Criteria for Successful Migration
 
-Each module upgrade is considered successful when:
+### 1. Build Validation
+- [ ] All 7 modules compile without errors
+- [ ] All modules produce valid JAR artifacts
+- [ ] Docker images build successfully for all services
+- [ ] No `javax.*` imports remain in modules targeting Spring Boot 3.x (should be `jakarta.*`)
 
-1. **Build Success**: Module compiles without errors using `mvn clean package`
-2. **Health Check**: `/healthcheck` endpoint returns HTTP 200
-3. **Functional Equivalence**: All REST endpoints return the same response structure as pre-migration
-4. **No javax References**: No remaining `javax.persistence`, `javax.annotation`, or `javax.validation` imports (for modules migrating to Spring Boot 3.x)
-5. **No Deprecated APIs**: No usage of deprecated Spring Boot APIs
-6. **Docker Deployment**: Service starts and passes health check in Docker Compose environment
+### 2. Runtime Validation
+- [ ] All services start without exceptions in Docker Compose
+- [ ] Health check endpoints return HTTP 200 for all services
+- [ ] PostgreSQL connection successful from instruments service
+- [ ] H2 in-memory database initializes with synthetic data in stock service
 
-### Stock Module Criteria
+### 3. Functional Validation
+- [ ] Main page (`GET /`) returns HTML with products and instruments
+- [ ] Products endpoint returns 5 products for any location
+- [ ] Conductors endpoint returns 5 products (internal Oregon exception handled gracefully)
+- [ ] Stock endpoint returns 5 stock records
+- [ ] Instruments endpoint returns instruments from PostgreSQL
+- [ ] Utah routing correctly delegates to conductors service
+- [ ] Colorado latency injection still produces ~1 second delay
+- [ ] Exercise scoring endpoint returns valid JSON
 
-- [ ] Spring Boot 3.2.x parent declared in pom.xml
-- [ ] Java 17 (or higher) target in pom.xml
-- [ ] All `javax.*` imports replaced with `jakarta.*`
-- [ ] H2 database functions correctly (5 seed records created)
-- [ ] `/legacy` endpoint returns 5 stock records
-- [ ] `/insruments` endpoint returns stock records
-- [ ] `/healthcheck` returns HTTP 200
-- [ ] Cucumber tests migrated to `io.cucumber` group ID
+### 4. Circuit Breaker Validation (Post-Hystrix Migration)
+- [ ] Fallback triggered when downstream service unavailable
+- [ ] Fallback returns empty collection (not error)
+- [ ] Circuit opens after threshold failures
+- [ ] Circuit closes after recovery period
 
-### Instruments Module Criteria
+### 5. Data Integrity
+- [ ] `instruments_for_sale` table accessible with all records
+- [ ] `instruments_for_sale_chicago` table accessible with all records
+- [ ] Stock synthetic data (5 records) generated on startup
+- [ ] Product catalog (5 products) available via in-memory DAO
 
-- [ ] Spring Boot 3.2.x parent declared in pom.xml
-- [ ] All `javax.persistence.*` replaced with `jakarta.persistence.*`
-- [ ] All `javax.annotation.*` replaced with `jakarta.annotation.*`
-- [ ] PostgreSQL connection functions correctly
-- [ ] `/instruments?location=California` returns instrument data
-- [ ] `/instruments?location=Chicago` returns data (Cartesian product behavior preserved or fixed)
-- [ ] `/instruments?location=Oregon` returns empty array
-- [ ] `/stocks` endpoint returns stock data
-- [ ] OpenTelemetry annotations upgraded to stable version
+### 6. Security Validation
+- [ ] Log4j upgraded to 2.24.x+ in test module (CVE-2021-44228 remediated)
+- [ ] SQL injection in `FindInstrumentRepositoryImpl` replaced with parameterized query
+- [ ] No new security vulnerabilities introduced during migration
 
-### Shop Module Criteria
-
-- [ ] Spring Boot 3.2.x parent declared in pom.xml
-- [ ] Java 17+ target in pom.xml
-- [ ] Spring Cloud updated to current release
-- [ ] Hystrix replaced with Resilience4j (fallback behavior preserved)
-- [ ] All `javax.*` imports replaced with `jakarta.*`
-- [ ] Log4j upgraded to safe version (or migrated to SLF4J)
-- [ ] Thymeleaf renders correctly without LEGACYHTML5 mode
-- [ ] All downstream service calls function correctly
-- [ ] `/` renders homepage with products and instruments
-- [ ] Utah routing to conductors service works
-- [ ] Exercise scoring system functions correctly
-
-### System-Wide Criteria
-
-- [ ] All 5 services start successfully in Docker Compose
-- [ ] All health checks pass within startup period
-- [ ] Inter-service communication works across all services
-- [ ] No Spring Boot version older than 3.x remains in any module
-- [ ] No Java version older than 17 remains in any module
-- [ ] No known critical CVE vulnerabilities in dependencies
-
-## Related Documents
-
-- [Component Order](component-order.md) | [Test Specifications](test-specifications.md)
-- [Technical Debt → Remediation Plan](../technical-debt/remediation-plan.md)
+### 7. Compatibility Validation
+- [ ] All REST API contracts unchanged (same endpoints, parameters, response formats)
+- [ ] Endpoint typos preserved if intentional (`/instrumemnts`, `/insruments`) or coordinated fix
+- [ ] Thymeleaf templates render correctly with updated Spring Boot
+- [ ] Docker Compose orchestration works with updated service images
 
 ---
 
-[← Back to README](../README.md)
+## Related Documents
+
+- [Test Specifications](test-specifications.md) — Specific test cases
+- [Component Order](component-order.md) — Migration sequence
+- [Remediation Plan](../technical-debt/remediation-plan.md) — Detailed upgrade steps

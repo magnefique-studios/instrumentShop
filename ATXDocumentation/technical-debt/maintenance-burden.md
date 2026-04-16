@@ -1,96 +1,102 @@
-# Maintenance Burden Analysis
+# Maintenance Burden
+
+[← Back to README](../README.md) | [← Technical Debt Report](../technical-debt-report.md) | [Summary](summary.md) | [Outdated Components](outdated-components.md) | [Remediation Plan](remediation-plan.md)
 
 ## Overview
 
-The Java Instrument Shop project carries a significant maintenance burden due to framework fragmentation, deprecated libraries, and code quality hotspots. This document identifies the areas requiring the most maintenance attention.
+This document identifies areas of the codebase that create ongoing maintenance overhead.
 
 ---
 
-## 1. Mixed Spring Boot Versions — Severity: High
+## Mixed Framework Versions
 
-**Impact**: The project runs four different Spring Boot versions across its modules:
+The most significant maintenance burden is the **three different Spring Boot versions** across the project:
 
-| Module | Spring Boot Version | Java Version | Spring Boot Generation |
-|--------|-------------------|--------------|----------------------|
-| shop | 1.5.19.RELEASE | 1.8 | 1st Gen (EOL) |
-| stock | 2.1.3.RELEASE | 1.8 | 2nd Gen (EOL) |
-| instruments | 2.7.5 | 17 | 2nd Gen (approaching EOL) |
-| products | 3.2.2 | 17 | 3rd Gen (current) |
-| conductors | 3.2.2 | 17 | 3rd Gen (current) |
+| Version | Modules | Java Requirement | API Style |
+|---------|---------|-----------------|-----------|
+| 1.5.19 | shop | Java 1.8 | `javax.*` namespace, Spring Web MVC 4 |
+| 2.1.3 | stock | Java 1.8 | `javax.*` namespace, Spring Web MVC 5 |
+| 2.7.5 | instruments | Java 17 | `javax.*` namespace, Spring Web MVC 5 |
+| 3.2.2 | products, conductors | Java 17 | `jakarta.*` namespace, Spring Web MVC 6 |
 
-**Maintenance cost**: Developers must maintain expertise across three different Spring Boot generations. Dependency upgrades, security patches, and configuration changes differ significantly between versions. Shared patterns and libraries cannot be unified.
-
----
-
-## 2. Deprecated Library Dependencies — Severity: High
-
-### Netflix Hystrix (shop module)
-- Hystrix entered maintenance mode in 2018 and is no longer actively developed
-- No new features, security patches, or bug fixes
-- The Spring Cloud Hystrix starter was removed in newer Spring Cloud releases
-- Replacement: Resilience4j or Spring Cloud Circuit Breaker
-
-### Spring Cloud Dalston (shop module)
-- Dalston is several major releases behind current Spring Cloud
-- Incompatible with Spring Boot 2.x and above
-- Blocks the shop module from being upgraded independently
-
-### Cucumber info.cukes (stock module)
-- The `info.cukes` group ID has been deprecated and migrated to `io.cucumber`
-- Version 1.2.5 lacks modern Cucumber features and has known issues
-- The community has fully moved to `io.cucumber` 7.x+
+This means:
+- Different dependency resolution behavior per module
+- Cannot use a single parent BOM for consistent dependency management
+- `javax.persistence` (shop, stock, instruments) vs `jakarta.persistence` (products, conductors) creates incompatible entity models
+- Testing and debugging requires knowledge of multiple Spring Boot generations
 
 ---
 
-## 3. Code Quality Hotspots — Severity: Medium
+## Code Duplication
 
-### ProductFilterService (products and conductors modules)
-- **~600 lines** of highly repetitive code with 30+ `myCoolFunction*()` methods
-- Each method follows an identical pattern: declare `sleepy` variable → `Thread.sleep()` → empty `catch` block
-- Contains intentional latency injection for Colorado location via `myCoolFunction234234234()` with magic number `999`
-- Significant maintenance burden: any change requires understanding the intentional vs. unintentional behavior
-
-### FindInstrumentRepositoryImpl (instruments module)
-- **SQL injection vulnerability** in `findInstrumentByID()`: concatenates user input directly into HQL query
-- **Cartesian product query** in `findInstruments()`: `SELECT * FROM instruments_for_sale, instruments_for_sale_chicago` produces a cross join with no WHERE clause
-- Both methods represent data access anti-patterns that are difficult to maintain safely
-
-### HomeController (shop module)
-- Contains commented-out HTTP call with hardcoded external URL (Lambda function)
-- Mixes concerns: user management, exercise scoring, permission checking, latency tracking all in one controller
-- Uses static mutable fields (`s_coloradoLatency`, `s_utahLatency`) for cross-request state
+| Duplicated Code | Locations | Impact |
+|----------------|-----------|--------|
+| `ProductFilterService` | products module, conductors module | Nearly identical ~600-line classes with Thread.sleep chains. Conductors version has calls commented out. Any bug fix must be applied in both. |
+| `ProductService` / `ConductorsService` | products, conductors | Identical in-memory DAO with same 5 products |
+| `Product` model | products, conductors, shop | Three different Product classes with overlapping fields |
+| `InvalidLocaleException` | shop, products, conductors, instruments | Four identical exception classes in different packages |
+| `FilteredProducts` / `FilteredInstrument` | conductors, instruments | Nearly identical Oregon-locale filter logic |
 
 ---
 
-## 4. Configuration and Naming Issues — Severity: Low
+## Anti-Patterns Requiring Ongoing Attention
 
-| Issue | Module | File | Impact |
-|-------|--------|------|--------|
-| Endpoint typo `/insruments` | stock | `StockResource.java` | API consumers must use misspelled URL |
-| Location hardcoded to "Oregon" | conductors | `ConductorsController.java` | Incoming `location` parameter is ignored |
-| Typo `/instrumemnts` | shop | `StockRepo.java` | Calls misspelled endpoint on stock service |
-| Duplicate spring-boot-starter-web | instruments | `pom.xml` | Declared twice (once with exclusion, once without) |
-| Redundant logger lines | instruments | `InstrumentsApplication.java` | Same log message repeated 6 times |
+### Thread.sleep Abuse
+- **~60+ Thread.sleep calls** in ProductFilterService (products module) for artificial latency
+- Same pattern duplicated (but commented out) in conductors module
+- `myCoolFunction234234234()` contains the deliberate latency injection for Colorado
+- Maintenance risk: Distinguishing intentional demo behavior from actual bugs
+
+### Empty Catch Blocks
+- **~60+ empty catch blocks** silently swallowing `InterruptedException`
+- Spread across both ProductFilterService implementations
+- Makes debugging extremely difficult — exceptions disappear without trace
+
+### Manual Service Instantiation
+- `ProductController` creates `new ProductService()` and `new ProductFilterService()` per request instead of using Spring DI
+- Same pattern in `ConductorsController` with `new ConductorsService()` and `new ProductFilterService()`
+- Prevents proper testing, monitoring, and lifecycle management
+
+### Commented-Out Code
+- Extensive commented-out code throughout:
+  - `HomeController.checkIfRestricted()` — entire HTTP client call
+  - `ProductService.getProductsNew()` — entire method
+  - `StockService.getStock()` — entire method
+  - `StockResource` — getStock endpoint
+  - `InstrumentResource` — getInstrument endpoint
+  - `conductors/ProductFilterService` — entire filter chain
+  - Annotator file paths and imports
 
 ---
 
-## 5. Testing Infrastructure — Severity: Medium
+## Configuration Complexity
 
-- Root POM depends on **JUnit 3.8.1**, which is 3 major versions behind
-- Only one test file exists: `shop/src/test/java/.../ShopTest.java`
-- Cucumber tests in stock module use deprecated `info.cukes` dependency
-- No integration tests for inter-service HTTP communication
-- No test coverage for the annotator module
+### Docker Compose
+- Multiple `docker-compose*.yml` files: `docker-compose.yml`, `docker-compose copy.yml`, `docker-compose copy 2.yml`, `docker-compose.yml22`, `docker-compose-conductors.yml`
+- Extensive commented-out Datadog agent configuration
+- External network dependency (`instrument_shop`)
+
+### Environment-Dependent Behavior
+- Exercise system reads from container-mounted file `/container/shop/data/.env`
+- Properties-based scoring reads from `/container/shop/data/shop.properties`
+- Test module reads from `/container/test/data/tester.properties`
+- All require specific Docker volume mounts to function
+
+---
+
+## Endpoint Naming Issues
+
+| Endpoint | Module | Issue |
+|----------|--------|-------|
+| `/instrumemnts` | shop (StockRepo) | Typo: "instrumemnts" instead of "instruments" |
+| `/insruments` | stock (StockResource) | Typo: "insruments" instead of "instruments" |
+| Both endpoint typos may be intentional for the demo | | Cannot be fixed without coordinating clients |
 
 ---
 
 ## Related Documents
 
-- [Summary](summary.md)
-- [Outdated Components](outdated-components.md)
-- [Remediation Plan](remediation-plan.md)
-- [Root-level Technical Debt Report](../technical-debt-report.md)
-
----
-
-[← Back to README](../README.md)
+- [Summary](summary.md) — Debt overview
+- [Outdated Components](outdated-components.md) — Version details
+- [Remediation Plan](remediation-plan.md) — Prioritized fixes
+- [Architecture Patterns](../architecture/patterns.md) — Design patterns in use

@@ -1,57 +1,63 @@
 # System Overview
 
+[← Back to README](../README.md) | [Components](components.md) | [Dependencies](dependencies.md) | [Patterns](patterns.md)
+
 ## Project Identity
 
-- **Name**: Java Instrument Shop ("InstrumenT-ation Shop")
-- **Group ID**: `com.splunk` (root), `com.shabushabu.javashop` (modules)
-- **Type**: Multi-module Maven project with microservices architecture
-- **Codebase Size**: ~4,805 lines of Java across 60 files, 7 Maven modules
+- **Name**: InstrumenT-ation Shop (JavaShop)
+- **GroupId**: `com.splunk` (root), `com.shabushabu.javashop` (modules), `com.splunk.otel` (annotator)
+- **Build System**: Maven (multi-module POM)
+- **Language**: Java
+- **Total LOC**: ~4,805 lines across 60 Java source files
+
+## Purpose
+
+A multi-service e-commerce demo platform designed for **APM/observability training**. The application simulates a musical instrument marketplace with deliberate latency injection points and error conditions that trainees must identify using observability tools (originally Splunk/Datadog, with OpenTelemetry instrumentation).
 
 ## Technology Stack
 
-| Layer | Technology | Details |
-|-------|-----------|---------|
-| **Language** | Java | 1.8 (shop, stock), 17 (products, conductors, instruments, annotator) |
-| **Framework** | Spring Boot | 1.5.19 / 2.1.3 / 2.7.5 / 3.2.2 (mixed versions) |
-| **Cloud** | Spring Cloud Dalston | shop module only (Hystrix, Eureka starters) |
-| **Database** | PostgreSQL 13.1 | instruments data (instruments_for_sale, instruments_for_sale_chicago) |
-| **In-Memory DB** | H2 | stock module (embedded, auto-generated data) |
-| **Cache** | Redis | Defined in docker-compose.yml |
-| **Build** | Maven | Multi-module POM structure |
-| **Containerization** | Docker / Docker Compose | All services containerized |
-| **Monitoring** | OpenTelemetry | Instrumentation annotations across modules |
-| **Template Engine** | Thymeleaf | shop module (LEGACYHTML5 mode) |
+| Layer | Technology | Version(s) |
+|-------|-----------|------------|
+| Framework | Spring Boot | 1.5.19, 2.1.3, 2.7.5, 3.2.2 |
+| Cloud | Spring Cloud | Dalston.SR5 (shop only) |
+| Circuit Breaker | Netflix Hystrix | via Spring Cloud Dalston (shop only) |
+| Template Engine | Thymeleaf | via Spring Boot (shop only) |
+| ORM | Spring Data JPA / Hibernate | Per Spring Boot version |
+| Database (instruments) | PostgreSQL | 13.1-alpine |
+| Database (stock) | H2 (in-memory) | via Spring Boot |
+| Cache | Redis | Latest (declared but usage not observed in code) |
+| Build | Maven | 4.0.0 POM |
+| Containerization | Docker / Docker Compose | v3 format |
+| Observability | OpenTelemetry annotations | 1.19.x-alpha, 2.2.0 |
+| Logging | Log4j 2, SLF4J/Logback | 2.24.3 (shop), 2.6.1 (test), managed (others) |
+| Code Analysis | JavaParser | 3.23.1 (annotator) |
 
-## Deployment Architecture
+## Module Overview
 
-All services are deployed as Docker containers within a shared Docker network (`instrument_shop`). Services communicate via HTTP REST using Docker service names for DNS resolution.
+| Module | Spring Boot | Java | Port | Description |
+|--------|------------|------|------|-------------|
+| shop | 1.5.19 | 1.8 | 8010 | Main frontend + orchestrator (Thymeleaf UI, Hystrix) |
+| products | 3.2.2 | 17 | 8020 | Product catalog with in-memory data + latency simulation |
+| conductors | 3.2.2 | 17 | 8050 | Alternative product service (Utah routing, Oregon exception) |
+| stock | 2.1.3 | 1.8 | 8030 | Stock management with H2 + synthetic data |
+| instruments | 2.7.5 | 17 | 8040 | Instrument CRUD with PostgreSQL |
+| annotator | N/A | 17 | N/A | OTel annotation tool (offline utility) |
+| test | N/A | 11 | N/A | Traffic generator for demo scenarios |
 
-### Service Ports
+## Deployment Model
 
-| Service | Port | Description |
-|---------|------|-------------|
-| shop | 8010 | Frontend + API gateway |
-| products | 8020 | Product catalog |
-| stock | 8030 | Stock management |
-| instruments | 8040 | Instrument CRUD (JPA/PostgreSQL) |
-| conductors | 8050 | Filtered products (Utah-specific) |
-| postgresDB | 5432 | PostgreSQL database |
-| redis | (default) | Caching layer |
-
-## Key Architectural Decisions
-
-1. **Microservices Architecture**: Each business domain is a separate Spring Boot application
-2. **Docker-based Service Discovery**: Services reference each other by Docker Compose service names (no Eureka registry despite dependency)
-3. **Synchronous HTTP Communication**: All inter-service calls are synchronous REST via RestTemplate
-4. **Circuit Breaker Pattern**: Hystrix used in shop module for fault tolerance on stock and instrument calls
-5. **Database per Service**: instruments uses PostgreSQL, stock uses H2 — each has its own data store
-
-## Related Documents
-
-- [Components](components.md) | [Dependencies](dependencies.md) | [Patterns](patterns.md)
-- [Deployment Configuration](../specialized/deployment-configuration.md)
-- [Technical Debt Report](../technical-debt-report.md)
+- **Docker Compose** orchestration with `instrument_shop` external network
+- **PostgreSQL** container for instruments data (2 SQL init scripts)
+- **Redis** container declared (usage not observed in application code)
+- **Volume mounts** for properties files (shop/data, test/data)
+- **Health checks** on all services via `/healthcheck` endpoints
+- **Service links**: shop → products, stock, instruments; instruments → postgresDB; shoptester → shop
 
 ---
 
-[← Back to README](../README.md)
+## Related Documents
+
+- [Components](components.md) — Detailed component descriptions
+- [Dependencies](dependencies.md) — Internal and external dependency mapping
+- [Patterns](patterns.md) — Design patterns identified
+- [Project Overview](../project-overview.md) — Executive summary

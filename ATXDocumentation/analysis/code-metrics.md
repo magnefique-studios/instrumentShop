@@ -1,63 +1,56 @@
 # Code Metrics
 
-## Overall Codebase Statistics
-
-| Metric | Value |
-|--------|-------|
-| Total Java source files | 60 |
-| Total lines of Java code | ~4,805 |
-| Maven modules | 7 |
-| Spring Boot services | 5 (shop, products, conductors, stock, instruments) |
-| Standalone tools | 1 (annotator) |
-| REST endpoints | 14 |
-| JPA entities | 3 (Instrument, Stock in instruments; Stock in stock) |
+[← Back to README](../README.md) | [Complexity Analysis](complexity-analysis.md) | [Dependency Analysis](dependency-analysis.md) | [Security Patterns](security-patterns.md)
 
 ## Lines of Code by Module
 
-| Module | Java Files | Approx. LOC | Complexity |
-|--------|-----------|-------------|------------|
-| shop | 16 | ~1,200 | Medium — service orchestration, Hystrix, exercises |
-| products | 5 | ~700 | High — ProductFilterService dominates |
-| conductors | 7 | ~650 | High — duplicate ProductFilterService |
-| instruments | 12 | ~550 | Medium — JPA, custom queries |
-| stock | 9 | ~350 | Low — simple CRUD |
-| annotator | 4 | ~300 | Medium — AST manipulation |
-| test | 1 | ~55 | Low — traffic generator |
+| Module | Java Files | Approx LOC | Main Classes | Test Classes |
+|--------|-----------|------------|--------------|-------------|
+| shop | 18 | ~1,800 | 17 | 1 (empty) |
+| products | 6 | ~700 | 6 | 0 |
+| conductors | 7 | ~700 | 7 | 0 |
+| instruments | 13 | ~650 | 13 | 0 |
+| stock | 9 | ~350 | 9 | 0 |
+| annotator | 4 | ~400 | 4 | 0 |
+| test | 1 | ~180 | 1 | 0 |
+| **Total** | **58** | **~4,805** | **57** | **1** |
 
-## Complexity Hotspots
+## Class Count by Type
 
-### 1. ProductFilterService (products module) — ~600 lines
-- **Cyclomatic complexity**: Low per method, but 30+ methods with identical structure
-- **Issue**: Extreme code duplication — each `myCoolFunction*()` follows the same Thread.sleep pattern
-- **Root cause**: Intentional design for APM training (needle in haystack exercise)
+| Type | Count | Examples |
+|------|-------|---------|
+| @SpringBootApplication | 5 | JavaShopApp, ProductServiceApplication, etc. |
+| @Controller / @RestController | 6 | HomeController, ProductController, etc. |
+| @Service | 6 | ProductService (shop), InstrumentService, StockService, etc. |
+| @Component | 4 | InstrumentRepo, ProductRepo, StockRepo, DataGenerator |
+| @Entity | 3 | Instrument, Stock (instruments), Stock (stock) |
+| Interface | 4 | FindInstrumentRepository, InstrumentRepository, etc. |
+| Exception classes | 6 | InvalidLocaleException (×4), InstrumentNotFoundException, StockNotFoundException |
+| DTO classes | 3 | InstrumentDTO, ProductDTO, StockDTO |
+| POJO/Model | 8 | Product (×3), User, FilteredProducts, FilteredInstrument, etc. |
+| Utility/Tool | 5 | Exercises, PropertiesUpdater, DirExplorer, OpenTelemetryAnnotator, GenerateTraffic |
 
-### 2. HomeController (shop module) — ~130 lines
-- **Concerns**: Mixes web presentation, exercise scoring, permission checking, and latency tracking
-- **Issue**: Violates Single Responsibility Principle
+## Method Count by Module
 
-### 3. Exercises (shop module) — ~200 lines
-- **Cyclomatic complexity**: Medium — large switch statement with 15 cases
-- **Issue**: Complex validation logic tightly coupled to HomeController
+| Module | Public Methods | Private Methods | Total |
+|--------|---------------|----------------|-------|
+| shop | ~65 | ~15 | ~80 |
+| products | ~15 | ~35 | ~50 |
+| conductors | ~15 | ~35 | ~50 |
+| instruments | ~45 | ~5 | ~50 |
+| stock | ~20 | ~2 | ~22 |
+| annotator | ~12 | ~3 | ~15 |
+| test | ~1 | ~0 | ~1 |
 
-### 4. OpenTelemetryAnnotator (annotator module) — ~130 lines
-- **Complexity**: Medium — file I/O, AST manipulation, property management
-- **Issue**: Method exclusion logic hardcoded (skip main, setters, getters, health checks)
+## Test Coverage
 
-## Duplication Analysis
-
-| Duplicated Component | Module A | Module B | Notes |
-|---------------------|----------|----------|-------|
-| ProductFilterService | products | conductors | Near-identical ~600 line classes |
-| Product model | products | conductors | Identical POJO |
-| ProductService / ConductorsService | products | conductors | Same in-memory DAO |
-| InvalidLocaleException | shop, products, conductors, instruments | — | 4 identical copies |
-| FilteredProducts / FilteredInstrument | conductors | instruments | Near-identical locale filter |
-
-## Related Documents
-
-- [Dependency Analysis](dependency-analysis.md) | [Security Patterns](security-patterns.md) | [Tech Debt](tech-debt.md)
-- [Architecture → Patterns](../architecture/patterns.md)
+- **ShopTest.java**: Single test file with all test methods commented out — effectively **0% test coverage**
+- **No other test classes exist** in any module
+- Stock module has Cucumber dependencies but no feature files or step definitions found in source
 
 ---
 
-[← Back to README](../README.md)
+## Related Documents
+
+- [Complexity Analysis](complexity-analysis.md) — Module complexity rankings
+- [Dependency Analysis](dependency-analysis.md) — Dependency mapping

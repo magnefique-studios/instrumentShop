@@ -1,37 +1,38 @@
-# Tech Debt Assessment
+# Tech Debt (Analysis Cross-Reference)
 
-This document provides a cross-reference summary of all technical debt findings. For detailed analysis, see the dedicated [technical-debt/](../technical-debt/) directory.
+[← Back to README](../README.md) | [Technical Debt Report](../technical-debt-report.md) | [Security Patterns](security-patterns.md)
 
-## Summary Dashboard
+## Summary
 
-| Category | Items | Highest Severity |
-|----------|-------|-----------------|
-| EOL Runtimes & Frameworks | 5 | **High** |
-| Outdated Dependencies | 6 | **Medium** |
-| Security Vulnerabilities | 2 | **Medium** |
-| Code Quality Issues | 7 | **Low** |
-| **Total** | **20** | — |
+This file provides a cross-reference between the analysis findings and the detailed technical debt documentation.
 
-## Quick Reference
+| Category | Severity | Detail Location |
+|----------|----------|----------------|
+| EOL Spring Boot versions (1.5.19, 2.1.3, 2.7.5) | High | [Outdated Components](../technical-debt/outdated-components.md) |
+| Deprecated Spring Cloud Dalston | High | [Outdated Components](../technical-debt/outdated-components.md) |
+| Deprecated Netflix Hystrix | High | [Outdated Components](../technical-debt/outdated-components.md) |
+| Java 1.8 runtime (shop, stock) | High | [Outdated Components](../technical-debt/outdated-components.md) |
+| Log4j 2.6.1 vulnerability (test) | Medium | [Security Patterns](security-patterns.md) |
+| JUnit 3.8.1 (root) | Medium | [Outdated Components](../technical-debt/outdated-components.md) |
+| Cucumber info.cukes (stock) | Medium | [Outdated Components](../technical-debt/outdated-components.md) |
+| OTel alpha annotations | Medium | [Outdated Components](../technical-debt/outdated-components.md) |
+| commons-httpclient 3.1 (test) | Medium | [Outdated Components](../technical-debt/outdated-components.md) |
+| SQL injection vulnerability | Low | [Security Patterns](security-patterns.md) |
+| Empty catch blocks (60+) | Low | [Maintenance Burden](../technical-debt/maintenance-burden.md) |
+| Thread.sleep anti-patterns | Low | [Maintenance Burden](../technical-debt/maintenance-burden.md) |
+| Cartesian product query | Low | [Security Patterns](security-patterns.md) |
+| Endpoint typos | Low | [Maintenance Burden](../technical-debt/maintenance-burden.md) |
+| Code duplication | Low | [Maintenance Burden](../technical-debt/maintenance-burden.md) |
+| Zero test coverage | Low | [Code Metrics](code-metrics.md) |
 
-- **[Technical Debt Report](../technical-debt-report.md)** — Executive summary with AWS Transformation Recommendation
-- **[Summary](../technical-debt/summary.md)** — Categorized overview of all findings
-- **[Outdated Components](../technical-debt/outdated-components.md)** — Module-by-module dependency analysis
-- **[Maintenance Burden](../technical-debt/maintenance-burden.md)** — Areas requiring significant maintenance
-- **[Remediation Plan](../technical-debt/remediation-plan.md)** — Prioritized action items
+## AWS Transformation Recommendation
 
-## Top 5 Critical Items
-
-1. **Spring Boot 1.5.19 EOL** (shop) — High — No security patches since 2019
-2. **Log4j 2.6.1** (shop) — Medium — Vulnerable to Log4Shell RCE
-3. **Spring Boot 2.1.3 EOL** (stock) — High — No security patches since 2019
-4. **SQL Injection** (instruments) — Medium — Unsanitized query parameter
-5. **Spring Cloud Dalston EOL** (shop) — High — Blocks framework upgrades
-
-## Related Documents
-
-- [Code Metrics](code-metrics.md) | [Dependency Analysis](dependency-analysis.md) | [Security Patterns](security-patterns.md)
+See [Technical Debt Report](../technical-debt-report.md) for the recommended `AWS/java-version-upgrade` transformation.
 
 ---
 
-[← Back to README](../README.md)
+## Related Documents
+
+- [Technical Debt Report](../technical-debt-report.md) — Root-level report with AWS recommendation
+- [Remediation Plan](../technical-debt/remediation-plan.md) — Prioritized action items
+- [Security Patterns](security-patterns.md) — Security analysis

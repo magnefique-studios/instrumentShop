@@ -1,69 +1,76 @@
-# Technical Debt Report — Java Instrument Shop
+# Technical Debt Report
+
+[← Back to README](README.md) | [Detailed Analysis: Technical Debt](technical-debt/summary.md)
 
 ## 🎯 AWS Transformation Recommendation
 
-### **RECOMMENDED TRANSFORMATIONS: AWS/java-version-upgrade, AWS/early-access-log4j-to-slf4j-migration**
+### **RECOMMENDED TRANSFORMATIONS: AWS/java-version-upgrade**
 
-The `shop` module (Spring Boot 1.5.19 / Java 8) and `stock` module (Spring Boot 2.1.3 / Java 8) are running on end-of-life Spring Boot versions with Java 8 targets, and the `instruments` module (Spring Boot 2.7.5) is also approaching EOL. The **AWS/java-version-upgrade** transformation should be applied to each of these modules individually to upgrade to a modern JDK and Spring Boot version. Additionally, the `shop` module includes a direct dependency on **Log4j 2.6.1**, which is vulnerable to Log4Shell (CVE-2021-44228); the **AWS/early-access-log4j-to-slf4j-migration** transformation can address this critical security risk by migrating the logging framework.
+This Java multi-module Maven project has critical modules running on Java 1.8 (shop, stock) with Spring Boot 1.5.x and 2.1.x, both well past end-of-life. The `AWS/java-version-upgrade` transformation can systematically upgrade these modules to a modern JDK version (e.g., Java 17 or 21), modernizing dependencies including the Jakarta EE migration needed for javax.* → jakarta.* namespace changes, and updating Spring Boot to supported versions.
 
 ---
 
 ## Executive Summary
 
-This report presents the findings of a comprehensive technical debt analysis of the Java Instrument Shop multi-module Maven project. The application consists of 7 modules spanning **4 different Spring Boot versions** (1.5.x, 2.1.x, 2.7.x, 3.2.x) and **2 Java versions** (8 and 17). The most critical issues are end-of-life Spring Boot runtimes, a critically vulnerable Log4j dependency, a SQL injection vulnerability, and deprecated libraries (Hystrix, Cucumber `info.cukes`).
+The InstrumenT-ation Shop codebase contains **significant technical debt** across its 7 Maven modules, primarily stemming from **end-of-life frameworks and runtimes**. The most critical findings are:
 
-### Key Findings at a Glance
-
-| Severity | Count | Category |
-|----------|-------|----------|
-| **High** | 5 | EOL/deprecated runtimes and frameworks |
-| **Medium** | 6 | Outdated runtime/production dependencies and security issues |
-| **Low** | 4 | Code quality, developer tooling, and architectural issues |
+- **3 of 7 modules** use end-of-life Spring Boot versions (1.5.19, 2.1.3, 2.7.5)
+- **Critical security vulnerability**: Log4j 2.6.1 in the test module (CVE-2021-44228 — Log4Shell)
+- **SQL injection vulnerability** in `FindInstrumentRepositoryImpl`
+- **Deprecated Netflix Hystrix** circuit breaker in the shop module
+- **Mixed Java versions**: Java 1.8 (shop, stock), Java 11 (test), Java 17 (products, conductors, instruments, annotator)
 
 ---
 
-## High Severity Findings (EOL/Deprecated Runtimes & Frameworks)
+## Priority Summary
 
-1. **Spring Boot 1.5.19.RELEASE** — `shop` module — EOL since August 2019
-2. **Spring Cloud Dalston.SR5** — `shop` module — EOL, requires migration to modern Spring Cloud
-3. **Spring Boot 2.1.3.RELEASE** — `stock` module — EOL since late 2019
-4. **Java 1.8 target** — `shop` and `stock` modules — approaching/at end of public updates
-5. **Netflix Hystrix** — `shop` module — in maintenance mode/deprecated, no active development
-
-## Medium Severity Findings (Outdated Dependencies & Security)
-
-1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228)
-2. **Spring Boot 2.7.5** — `instruments` module — approaching EOL
-3. **OpenTelemetry annotations 1.19.1-alpha / 1.19.2-alpha** — `annotator` and `instruments` modules — alpha pre-release versions
-4. **SQL Injection** — `instruments` module — `FindInstrumentRepositoryImpl.findInstrumentByID()` concatenates user input into HQL
-5. **JUnit 3.8.1** — root POM — extremely outdated (current: JUnit 5.x)
-6. **Cucumber 1.2.5 (info.cukes)** — `stock` module — deprecated group ID, migrated to `io.cucumber`
-
-## Low Severity Findings (Code Quality & Tooling)
-
-1. **Thread.sleep anti-patterns** — `products` and `conductors` `ProductFilterService` — intentional latency injection with empty catch blocks
-2. **Cartesian product query** — `instruments` module `FindInstrumentRepositoryImpl.findInstruments()` — `SELECT * FROM instruments_for_sale, instruments_for_sale_chicago`
-3. **Endpoint typo** — `stock` module — `/insruments` instead of `/instruments`
-4. **Hardcoded location override** — `conductors` module — location always overridden to `"Oregon"`
+| Priority | Category | Count | Key Items |
+|----------|----------|-------|-----------|
+| **High** | EOL/Deprecated Runtimes & Frameworks | 6 | Spring Boot 1.5.19, 2.1.3, 2.7.5; Spring Cloud Dalston; Netflix Hystrix; Java 1.8 |
+| **Medium** | Outdated Dependencies | 7 | Log4j 2.6.1 (test), JUnit 3.8.1, Cucumber 1.2.5 (info.cukes), OTel alpha annotations, commons-httpclient 3.1, nekohtml 1.9.22 |
+| **Low** | Code Quality & Architecture | 8 | SQL injection, empty catch blocks, Thread.sleep anti-patterns, cartesian query, endpoint typos, hardcoded values, commented-out code |
 
 ---
 
-## Detailed Analysis
+## Critical Findings
 
-For detailed analysis of each category, see the following documents:
+### 🔴 High Severity — EOL/Deprecated Runtimes & Frameworks
 
-- [Technical Debt Summary](technical-debt/summary.md)
+1. **Spring Boot 1.5.19.RELEASE** (shop module) — EOL August 2019
+2. **Spring Boot 2.1.3.RELEASE** (stock module) — EOL late 2019
+3. **Spring Boot 2.7.5** (instruments module) — EOL November 2023
+4. **Spring Cloud Dalston.SR5** (shop module) — EOL December 2018
+5. **Netflix Hystrix** (shop module) — Deprecated, in maintenance mode since 2018
+6. **Java 1.8** (shop, stock modules) — While still receiving updates, many frameworks no longer support it
+
+### 🟡 Medium Severity — Outdated Dependencies
+
+1. **Log4j 2.6.1** (test module) — Vulnerable to CVE-2021-44228 (Log4Shell RCE), CVE-2021-45046, CVE-2017-5645
+2. **JUnit 3.8.1** (root pom) — Extremely outdated (current: JUnit 5.x)
+3. **Cucumber 1.2.5** (stock module, `info.cukes` groupId) — Deprecated, replaced by `io.cucumber`
+4. **OTel instrumentation annotations 1.19.1-alpha / 1.19.2-alpha** (annotator, shop, instruments) — Alpha pre-release versions
+5. **commons-httpclient 3.1** (test module) — Deprecated, replaced by Apache HttpComponents
+6. **nekohtml 1.9.22** (shop module) — Outdated HTML parser
+7. **Log4j 2.24.3** (shop module) — ✅ Already patched, NOT vulnerable
+
+### 🟢 Low Severity — Code Quality & Architecture
+
+1. **SQL Injection**: `FindInstrumentRepositoryImpl.findInstrumentByID()` concatenates user input into JPQL
+2. **60+ empty catch blocks**: Silently swallow exceptions in ProductFilterService
+3. **Thread.sleep anti-patterns**: Used for artificial latency simulation
+4. **Cartesian product query**: `SELECT * FROM instruments_for_sale, instruments_for_sale_chicago`
+5. **Endpoint typos**: `/instrumemnts` (StockRepo), `/insruments` (StockResource)
+6. **Hardcoded location**: Conductors controller always sets location to "Oregon"
+7. **Non-Spring-managed beans**: ProductController creates service instances manually
+8. **Excessive commented-out code** throughout the codebase
+
+---
+
+## Navigation
+
+- [Detailed Summary](technical-debt/summary.md)
 - [Outdated Components](technical-debt/outdated-components.md)
 - [Maintenance Burden](technical-debt/maintenance-burden.md)
 - [Remediation Plan](technical-debt/remediation-plan.md)
-
-## Related Documentation
-
-- [Architecture → Dependencies](architecture/dependencies.md)
-- [Analysis → Security Patterns](analysis/security-patterns.md)
-- [Analysis → Dependency Analysis](analysis/dependency-analysis.md)
-- [Migration → Component Order](migration/component-order.md)
-
----
-
-[← Back to README](README.md)
+- [Architecture Dependencies](architecture/dependencies.md)
+- [Security Patterns](analysis/security-patterns.md)

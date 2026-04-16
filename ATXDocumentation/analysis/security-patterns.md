@@ -1,113 +1,108 @@
 # Security Patterns
 
+[← Back to README](../README.md) | [Code Metrics](code-metrics.md) | [Dependency Analysis](dependency-analysis.md) | [Tech Debt](tech-debt.md)
+
 ## Critical Security Findings
 
-### 1. SQL Injection — Severity: Medium
+### 1. SQL Injection — FindInstrumentRepositoryImpl (High Impact)
 
-**File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java`, line ~32
+**Location**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java`
+**Line**: `findInstrumentByID()` method
 
 ```java
-public Instrument findInstrumentByID(String id) {
-    Instrument result = (Instrument) entityManager
-        .createQuery("FROM instruments i WHERE i.ID = " + id.toString())
-        .getSingleResult();
-    return result;
-}
+// VULNERABLE: String concatenation in JPQL
+Instrument result = (Instrument) entityManager.createQuery(
+    "FROM instruments i WHERE i.ID = " + id.toString()
+).getSingleResult();
 ```
 
-**Risk**: The `id` parameter is concatenated directly into the HQL query without sanitization. An attacker could inject arbitrary HQL/SQL.
-
-**Fix**: Use parameterized queries:
+**Risk**: An attacker can inject arbitrary JPQL/SQL via the `id` parameter.
+**Remediation**: Use parameterized queries:
 ```java
 entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
     .setParameter("id", id)
     .getSingleResult();
 ```
 
+**Note**: This method is not currently called by any REST endpoint (commented out in `InstrumentResource`), reducing immediate exposure but remaining a risk if re-enabled.
+
+### 2. Log4j RCE — CVE-2021-44228 (High Impact)
+
+**Location**: `test/pom.xml`
+**Version**: Log4j 2.6.1 (log4j-api and log4j-core)
+**CVE**: CVE-2021-44228 (Log4Shell), CVSS 10.0
+**Risk**: Remote code execution via JNDI lookup injection in log messages
+**Remediation**: Upgrade to Log4j 2.24.x
+
+**Note**: The **shop module** has Log4j 2.24.3 — ✅ already patched and NOT vulnerable.
+
 ---
 
-### 2. Log4j 2.6.1 Vulnerability (Log4Shell) — Severity: Medium
+## Security Patterns in Code
 
-**File**: `shop/pom.xml`, lines ~31-37
+### Authentication/Authorization
+- `HomeController.checkIfRestricted()` — Permission check framework exists but is **entirely commented out** (the external Lambda URL call). Currently always returns `false`.
+- `HomeController.allParameters()` throws `NoPermissionException` if restricted — but never triggers.
+- No other authentication or authorization mechanisms found in any module.
 
-```xml
-<dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-core</artifactId>
-    <version>2.6.1</version>
-</dependency>
+### Input Validation
+- `Instrument.isEnglish()` (shop module) — Regex-based locale validation for instrument titles. Checks against English character pattern.
+- `Instrument.buildForLocale()` — Calls `isEnglish()` but the exception throw is **commented out**, making the validation ineffective.
+- No input validation on REST endpoint parameters across any service.
+
+### Credential Handling
+- `Exercises.checkExercise2()` reads `SPLUNK_ACCESS_TOKEN` and `SPLUNK_REALM` from properties file
+- Token is sent via HTTP header `X-SF-Token` to Splunk ingestion endpoint
+- Token values are read from container-mounted file, not hardcoded in source
+- Code checks for dummy/placeholder values before attempting API calls
+
+### Error Information Disclosure
+- Stack traces printed via `e.printStackTrace()` in multiple locations (Exercises, InstrumentService)
+- `System.out.println("DATA IS FOUND: " + data)` in HomeController exposes request data to console
+- Exercise data and scores are exposed via `/score` endpoint without authentication
+
+---
+
+## Empty Catch Blocks (Security Impact)
+
+60+ empty catch blocks in ProductFilterService can mask security-relevant exceptions:
+```java
+try {
+    Thread.sleep(sleepy);
+} catch (Exception e) {
+    // Exception silently swallowed — including InterruptedException
+}
 ```
 
-**Risk**: Log4j 2.6.1 is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105. These allow remote code execution through crafted log messages.
-
-**Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
+While these primarily catch `InterruptedException`, the overly broad `Exception` type could mask unexpected errors including security-relevant ones.
 
 ---
 
-### 3. Cartesian Product Query — Severity: Low
+## Cartesian Product Query (Data Exposure)
 
-**File**: `instruments/src/main/java/.../repositories/FindInstrumentRepositoryImpl.java`, line ~26
+**Location**: `FindInstrumentRepositoryImpl.findInstruments()`
 
 ```java
-entityManager.createNativeQuery("SELECT * FROM instruments_for_sale, instruments_for_sale_chicago").getResultList();
+entityManager.createNativeQuery(
+    "SELECT * FROM instruments_for_sale, instruments_for_sale_chicago"
+).getResultList();
 ```
 
-**Risk**: Cross-join without WHERE clause produces 131 × 86 = 11,266 rows. Denial of service vector if triggered repeatedly.
-
-**Trigger**: Only executed when location is "Chicago".
+This unjoined cross-product returns `rows_table1 × rows_table2` results, potentially exposing more data than intended and causing performance degradation.
 
 ---
 
-### 4. Commented-Out External HTTP Call with Hardcoded URL — Severity: Low
+## Network Security
 
-**File**: `shop/src/main/java/.../controllers/HomeController.java`, line ~100 (commented out)
-
-```java
-// URL url = new URL("https://mofi2flod5cpeismodr7eonuiu0gkoli.lambda-url.us-west-1.on.aws/?userId=" + userId);
-```
-
-**Risk**: If uncommented, this would make HTTP calls to a hardcoded external AWS Lambda URL with user IDs. The URL may no longer be controlled by the project maintainers.
+- All inter-service communication uses unencrypted HTTP (no TLS)
+- PostgreSQL credentials are environment variables in `docker-compose.yml`: `instruments/instruments`
+- No API authentication between microservices
+- External network `instrument_shop` is declared but configured as external (must pre-exist)
 
 ---
-
-### 5. Empty Catch Blocks Hiding Errors — Severity: Low
-
-**Files**: `products/...ProductFilterService.java`, `conductors/...ProductFilterService.java`, `conductors/...ConductorsController.java`
-
-**Risk**: Silently swallowing exceptions prevents detection of runtime errors, security incidents, or data corruption. Over 30 instances across the codebase.
-
----
-
-### 6. Static Mutable State — Severity: Low
-
-**File**: `shop/src/main/java/.../controllers/HomeController.java`, lines ~25-26
-
-```java
-public static long s_coloradoLatency;
-public static long s_utahLatency;
-```
-
-**Risk**: Static mutable fields in a multi-threaded web server can lead to race conditions and data corruption.
-
----
-
-## Security Patterns in Use
-
-| Pattern | Implementation | Location |
-|---------|---------------|----------|
-| Circuit Breaker | Hystrix fallbacks prevent cascading failures | shop module repos |
-| Health Checks | `/healthcheck` endpoints for container monitoring | All services |
-| JPA Repository | Standard Spring Data patterns (excluding custom impl) | instruments, stock |
-| Spring Security | Not implemented | — |
-| Input Validation | Minimal (no `@Valid`, no request validation) | All services |
-| CORS | Not configured | All services |
-| Authentication | Not implemented | All services |
 
 ## Related Documents
 
-- [Technical Debt Report](../technical-debt-report.md)
-- [Code Metrics](code-metrics.md) | [Dependency Analysis](dependency-analysis.md)
-
----
-
-[← Back to README](../README.md)
+- [Technical Debt Report](../technical-debt-report.md) — Prioritized findings
+- [Error Handling](../behavior/error-handling.md) — Exception patterns
+- [Dependency Analysis](dependency-analysis.md) — Vulnerable dependency versions

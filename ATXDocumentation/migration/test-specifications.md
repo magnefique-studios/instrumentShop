@@ -1,69 +1,73 @@
 # Test Specifications
 
+[← Back to README](../README.md) | [Component Order](component-order.md) | [Validation Criteria](validation-criteria.md)
+
 ## Test Cases for Migration Validation
 
-### Stock Module Tests
+### TC-1: Shop Health Check
+- **Endpoint**: `GET http://shop:8010/healthcheck`
+- **Expected**: HTTP 200 with body containing "200"
+- **Validates**: Shop service starts and responds
 
-| Test ID | Description | Endpoint | Expected Result |
-|---------|-------------|----------|----------------|
-| ST-01 | Health check responds | GET /healthcheck | HTTP 200, body contains "200" |
-| ST-02 | Legacy stocks returns data | GET /legacy | HTTP 200, JSON array with 5 stock records |
-| ST-03 | Instrument stocks returns data | GET /insruments | HTTP 200, JSON array |
-| ST-04 | Stock record has required fields | GET /legacy | Each record has productId, sku, amountAvailable |
-| ST-05 | Synthetic data generated on startup | GET /legacy | Records include productIds 1-5 |
+### TC-2: Products Service
+- **Endpoint**: `GET http://products:8020/products?location=California`
+- **Expected**: HTTP 200, JSON array with 5 product objects (Widget, Sprocket, Anvil, Cogs, Multitool)
+- **Validates**: Products service returns hardcoded product catalog
 
-### Instruments Module Tests
+### TC-3: Conductors Service
+- **Endpoint**: `GET http://conductors:8050/conductors?location=Utah`
+- **Expected**: HTTP 200, JSON array with 5 product objects
+- **Validates**: Conductors returns products despite internal Oregon exception
 
-| Test ID | Description | Endpoint | Expected Result |
-|---------|-------------|----------|----------------|
-| IN-01 | Health check responds | GET /healthcheck | HTTP 200 |
-| IN-02 | Get instruments default location | GET /instruments?location=California | HTTP 200, JSON array of instruments |
-| IN-03 | Get instruments Chicago | GET /instruments?location=Chicago | HTTP 200, JSON array (non-empty) |
-| IN-04 | Get instruments Oregon | GET /instruments?location=Oregon | HTTP 200, empty array |
-| IN-05 | Get stocks | GET /stocks | HTTP 200, JSON array |
-| IN-06 | Instrument has required fields | GET /instruments?location=California | Each has id, title, price, instrument_type, condition |
-| IN-07 | PostgreSQL connection works | GET /instruments?location=California | Returns data from instruments_for_sale table |
+### TC-4: Stock Service
+- **Endpoint**: `GET http://stock:8030/legacy`
+- **Expected**: HTTP 200, JSON array with 5 stock records (productIds 1-5)
+- **Validates**: H2 data generation and stock retrieval
 
-### Shop Module Tests
+### TC-5: Instruments Service
+- **Endpoint**: `GET http://instruments:8040/instruments?location=California`
+- **Expected**: HTTP 200, JSON array of instruments from PostgreSQL
+- **Validates**: JPA + PostgreSQL connectivity and query execution
 
-| Test ID | Description | Endpoint | Expected Result |
-|---------|-------------|----------|----------------|
-| SH-01 | Health check responds | GET /healthcheck | HTTP 200 |
-| SH-02 | Homepage renders | GET / | HTTP 200, HTML content |
-| SH-03 | Homepage with location | GET /?location=California | HTTP 200, HTML with products |
-| SH-04 | Utah routes to conductors | GET /?location=Utah | HTTP 200, products returned |
-| SH-05 | Products REST endpoint | GET /products | HTTP 200, JSON array |
-| SH-06 | Score endpoint | GET /score?exercise=0 | HTTP 200, JSON map |
-| SH-07 | Fallback on downstream failure | Stop products service, GET / | Page renders (empty products) |
+### TC-6: Main Page Default
+- **Endpoint**: `GET http://shop:8010/`
+- **Expected**: HTTP 200, HTML page with products and instruments
+- **Validates**: End-to-end flow through shop → products + stock + instruments
 
-### Products Module Tests
+### TC-7: Utah Routing
+- **Endpoint**: `GET http://shop:8010/?location=Utah`
+- **Expected**: HTTP 200, HTML page with products (routed through conductors)
+- **Validates**: ProductRepo Utah → conductors routing logic
 
-| Test ID | Description | Endpoint | Expected Result |
-|---------|-------------|----------|----------------|
-| PR-01 | Health check responds | GET /products/healthcheck | HTTP 200 |
-| PR-02 | Get products by location | GET /products?location=California | HTTP 200, 5 products |
-| PR-03 | Colorado latency | GET /products?location=Colorado | Response delayed ~1 second |
+### TC-8: Colorado Latency
+- **Endpoint**: `GET http://products:8020/products?location=Colorado`
+- **Expected**: HTTP 200 with response time > 900ms
+- **Validates**: Deliberate latency injection in ProductFilterService
 
-### Conductors Module Tests
+### TC-9: Oregon Exception Handling
+- **Endpoint**: `GET http://instruments:8040/instruments?location=Oregon`
+- **Expected**: HTTP 200 (exception caught, returns instruments)
+- **Validates**: InvalidLocaleException handling in InstrumentService
 
-| Test ID | Description | Endpoint | Expected Result |
-|---------|-------------|----------|----------------|
-| CO-01 | Health check responds | GET /conductors/healthcheck | HTTP 200 |
-| CO-02 | Get products | GET /conductors?location=Utah | HTTP 200, JSON array with products |
+### TC-10: Exercise Scoring
+- **Endpoint**: `GET http://shop:8010/score?exercise=0`
+- **Expected**: HTTP 200, JSON object with exercise scores
+- **Validates**: Properties file reading and score retrieval
 
-### Integration Tests
+### TC-11: Hystrix Fallback
+- **Scenario**: Stop instruments service, then `GET http://shop:8010/`
+- **Expected**: HTTP 200 with empty instruments list (fallback triggered)
+- **Validates**: Hystrix circuit breaker fallback to empty map
 
-| Test ID | Description | Steps | Expected Result |
-|---------|-------------|-------|----------------|
-| IT-01 | End-to-end product flow | Start all services → GET /?location=California | Products with stock data displayed |
-| IT-02 | End-to-end Utah flow | GET /?location=Utah | Products served via conductors |
-| IT-03 | End-to-end instrument flow | GET /?location=California | Instruments from PostgreSQL displayed |
-| IT-04 | Docker Compose deployment | `docker-compose up` | All health checks pass within 30 seconds |
-
-## Related Documents
-
-- [Component Order](component-order.md) | [Validation Criteria](validation-criteria.md)
+### TC-12: Instrument Stocks
+- **Endpoint**: `GET http://instruments:8040/stocks`
+- **Expected**: HTTP 200, JSON array of stock records
+- **Validates**: InstrumentStocksService and repository
 
 ---
 
-[← Back to README](../README.md)
+## Related Documents
+
+- [Validation Criteria](validation-criteria.md) — Success criteria for migration
+- [Component Order](component-order.md) — Migration sequence
+- [API Reference](../reference/api-reference.md) — Full endpoint specifications

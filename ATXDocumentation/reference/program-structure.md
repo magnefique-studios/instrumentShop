@@ -1,136 +1,133 @@
 # Program Structure
 
-## Module Hierarchy
+[← Back to README](../README.md) | [Interfaces](interfaces.md) | [Data Models](data-models.md) | [API Reference](api-reference.md) | [Modules](modules.md)
 
-```
-javashop (root POM - com.splunk:javashop)
-├── shop/       (com.shabushabu.javashop:javashop.shop)
-├── stock/      (com.shabushabu.javashop:javashop.stock)
-├── products/   (com.shabushabu.javashop:javashop.products)
-├── instruments/ (com.shabushabu.javashop:javashop.instruments)
-├── conductors/ (com.shabushabu.javashop:javashop.conductors)
-├── annotator/  (com.splunk.otel:annotator)
-└── test/       (traffic generator)
-```
+## Complete Class Hierarchy
 
-## Class Hierarchy by Module
-
-### shop — `com.shabushabu.javashop.shop`
+### Shop Module (`com.shabushabu.javashop.shop`)
 ```
-shop/
-├── JavaShopApp                          [@SpringBootApplication, @EnableHystrix]
-├── Exercises                            [Singleton - exercise scoring]
-├── PropertiesUpdater                    [Singleton - score persistence]
+shop/src/main/java/com/shabushabu/javashop/shop/
+├── JavaShopApp.java                    — @SpringBootApplication, @EnableHystrix
+├── Exercises.java                      — Singleton, exercise validation engine
+├── PropertiesUpdater.java              — Singleton, score persistence
 ├── controllers/
-│   ├── HomeController                   [@Controller - main web controller]
-│   └── User                             [POJO - name, location]
+│   ├── HomeController.java             — @Controller (/, /score, /healthcheck)
+│   └── User.java                       — POJO (name, location)
 ├── exceptions/
-│   └── InvalidLocaleException           [extends Exception]
+│   └── InvalidLocaleException.java     — extends Exception
 ├── model/
-│   ├── Product                          [POJO - id, sku, name, description, price, amountAvailable]
-│   └── Instrument                       [POJO - id, title, price, instrument_type, condition, seller_type, location]
+│   ├── Instrument.java                 — Domain model with builder methods
+│   └── Product.java                    — Domain model (id, sku, name, desc, price, amount)
 ├── repo/
-│   ├── ProductRepo                      [@Component - HTTP client for products/conductors]
-│   ├── StockRepo                        [@Component - HTTP client for stock, @HystrixCommand]
-│   └── InstrumentRepo                   [@Component - HTTP client for instruments, @HystrixCommand]
+│   ├── InstrumentRepo.java             — @Component, REST client + @HystrixCommand
+│   ├── ProductRepo.java                — @Component, REST client (Utah routing)
+│   └── StockRepo.java                  — @Component, REST client + @HystrixCommand
 ├── resources/
-│   └── ProductResource                  [@RestController - /products]
+│   └── ProductResource.java            — @RestController (/products)
 └── services/
-    ├── ProductService                   [@Service - product aggregation]
-    ├── InstrumentService                [@Service - instrument aggregation]
+    ├── InstrumentService.java          — @Service, DTO→Model mapping
+    ├── ProductService.java             — @Service, product+stock merge
     └── dto/
-        ├── ProductDTO                   [DTO for products service response]
-        ├── InstrumentDTO                [DTO for instruments service response]
-        └── StockDTO                     [DTO for stock service response]
+        ├── InstrumentDTO.java          — DTO (10 fields)
+        ├── ProductDTO.java             — DTO (4 fields)
+        └── StockDTO.java              — DTO (3 fields, DEFAULT_STOCK_DTO)
+shop/src/test/java/com/shabushabu/javashop/shop/
+└── ShopTest.java                       — Empty test class (all tests commented out)
 ```
 
-### products — `com.shabushabu.javashop.products`
+### Products Module (`com.shabushabu.javashop.products`)
 ```
-products/
-├── ProductServiceApplication            [@SpringBootApplication]
+products/src/main/java/com/shabushabu/javashop/products/
+├── ProductServiceApplication.java      — @SpringBootApplication
 ├── controllers/
-│   └── ProductController                [@RestController - /products]
+│   └── ProductController.java          — @RestController (GET /products)
 ├── exceptions/
-│   └── InvalidLocaleException           [extends Exception]
+│   └── InvalidLocaleException.java     — extends Exception
 ├── model/
-│   └── Product                          [POJO with @JsonProperty]
+│   └── Product.java                    — POJO with @JsonProperty
 └── services/
-    ├── ProductService                   [In-memory DAO - 5 hardcoded products]
-    └── ProductFilterService             [Complex filtering with Thread.sleep patterns]
+    ├── ProductFilterService.java       — Filter chain with latency injection (~600 LOC)
+    └── ProductService.java             — In-memory DAO (5 products)
 ```
 
-### conductors — `com.shabushabu.javashop.conductors`
+### Conductors Module (`com.shabushabu.javashop.conductors`)
 ```
-conductors/
-├── ConductorsServiceApplication         [@SpringBootApplication]
+conductors/src/main/java/com/shabushabu/javashop/conductors/
+├── ConductorsServiceApplication.java  — @SpringBootApplication
 ├── controllers/
-│   └── ConductorsController             [@RestController - /conductors]
+│   └── ConductorsController.java      — @RestController (GET /conductors)
 ├── exceptions/
-│   └── InvalidLocaleException           [extends Exception]
+│   └── InvalidLocaleException.java    — extends Exception
 ├── model/
-│   ├── Product                          [POJO with @JsonProperty]
-│   └── FilteredProducts                 [Oregon locale validation]
+│   ├── FilteredProducts.java          — Oregon locale filter
+│   └── Product.java                   — POJO with @JsonProperty
 └── services/
-    ├── ConductorsService                [In-memory DAO - 5 hardcoded products]
-    └── ProductFilterService             [Mirror of products filter (all filtering commented out)]
+    ├── ConductorsService.java         — In-memory DAO (5 products)
+    └── ProductFilterService.java      — Filter chain (calls commented out, ~600 LOC)
 ```
 
-### instruments — `com.shabushabu.javashop.instruments`
+### Instruments Module (`com.shabushabu.javashop.instruments`)
 ```
-instruments/
-├── InstrumentsApplication               [@SpringBootApplication]
+instruments/src/main/java/com/shabushabu/javashop/instruments/
+├── InstrumentsApplication.java        — @SpringBootApplication, @EventListener
 ├── exceptions/
-│   ├── InstrumentNotFoundException      [extends Exception]
-│   └── InvalidLocaleException           [extends Exception]
+│   ├── InstrumentNotFoundException.java — extends Exception
+│   └── InvalidLocaleException.java     — extends Exception
 ├── model/
-│   ├── Instrument                       [@Entity - instruments_for_sale table]
-│   ├── FilteredInstrument               [Oregon locale validation]
-│   └── Stock                            [@Entity - InstrumentStocks table]
+│   ├── FilteredInstrument.java        — Oregon locale filter
+│   ├── Instrument.java               — @Entity (instruments_for_sale table)
+│   └── Stock.java                     — @Entity (InstrumentStocks table)
 ├── repositories/
-│   ├── InstrumentRepository             [extends JpaRepository, FindInstrumentRepository]
-│   ├── FindInstrumentRepository         [interface - custom query methods]
-│   ├── FindInstrumentRepositoryImpl     [native SQL queries - SQL injection vulnerability]
-│   └── InstrumentStocksRepository       [extends CrudRepository]
+│   ├── FindInstrumentRepository.java  — interface (custom queries)
+│   ├── FindInstrumentRepositoryImpl.java — SQL injection vulnerability
+│   ├── InstrumentRepository.java      — extends JpaRepository + FindInstrumentRepository
+│   └── InstrumentStocksRepository.java — extends CrudRepository
 ├── resources/
-│   └── InstrumentResource               [@RestController - /instruments, /stocks, /healthcheck]
+│   └── InstrumentResource.java        — @RestController (/instruments, /stocks)
 └── services/
-    ├── InstrumentService                [@Service - location-based instrument retrieval]
-    └── InstrumentStocksService          [@Service - instrument stock retrieval]
+    ├── InstrumentService.java         — @Service, location-based retrieval
+    └── InstrumentStocksService.java   — @Service, CRUD for stocks
 ```
 
-### stock — `com.shabushabu.javashop.stock`
+### Stock Module (`com.shabushabu.javashop.stock`)
 ```
-stock/
-├── StockManagerApplication              [@SpringBootApplication]
+stock/src/main/java/com/shabushabu/javashop/stock/
+├── StockManagerApplication.java       — @SpringBootApplication
 ├── config/
-│   └── DataGenerator                    [@Component - generates 5 stock records on startup]
+│   └── DataGenerator.java            — @Component, @PostConstruct data seeding
 ├── exceptions/
-│   └── StockNotFoundException           [extends Exception]
+│   └── StockNotFoundException.java   — extends Exception
 ├── model/
-│   └── Stock                            [@Entity - productId, sku, amountAvailable]
+│   └── Stock.java                    — @Entity (H2)
 ├── repositories/
-│   ├── StockRepository                  [extends CrudRepository]
-│   └── InstrumentStocksRepository       [extends CrudRepository]
+│   ├── InstrumentStocksRepository.java — extends CrudRepository
+│   └── StockRepository.java          — extends CrudRepository
 ├── resources/
-│   └── StockResource                    [@RestController - /legacy, /insruments, /healthcheck]
+│   └── StockResource.java            — @RestController (/legacy, /insruments)
 └── services/
-    ├── StockService                     [@Service - stock retrieval]
-    └── InstrumentStocksService          [@Service - instrument stock retrieval]
+    ├── InstrumentStocksService.java  — @Service
+    └── StockService.java             — @Service
 ```
 
-### annotator — `com.splunk.otel.annotator`
+### Annotator Module (`com.splunk.otel.annotator`)
 ```
-annotator/
-├── OpenTelemetryAnnotator               [Main class - auto-annotates Java files with OTel]
-├── DirExplorer                          [Recursive directory walker]
-├── DirExplorerInstrumented              [OTel-annotated directory walker]
-└── TestGeneratedInstrumentation         [Class listing test tool]
+annotator/src/main/java/com/splunk/otel/annotator/
+├── DirExplorer.java                  — Recursive file traversal
+├── DirExplorerInstrumented.java      — Same with @WithSpan/@SpanAttribute
+├── OpenTelemetryAnnotator.java       — Main annotator tool + OtelAnnotationVisitor (inner class)
+└── TestGeneratedInstrumentation.java — Test utility for listing classes
 ```
 
-## Related Documents
-
-- [Components](../architecture/components.md) | [Interfaces](interfaces.md) | [Data Models](data-models.md)
+### Test Module (default package)
+```
+test/src/main/java/
+└── GenerateTraffic.java              — Traffic generator (no package)
+```
 
 ---
 
-[← Back to README](../README.md)
+## Related Documents
+
+- [Interfaces](interfaces.md) — Public APIs and contracts
+- [Data Models](data-models.md) — Entity and DTO definitions
+- [Components](../architecture/components.md) — Component responsibilities

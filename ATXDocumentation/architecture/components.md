@@ -1,125 +1,103 @@
 # Components
 
-## Service Components
+[← Back to README](../README.md) | [System Overview](system-overview.md) | [Dependencies](dependencies.md) | [Patterns](patterns.md)
 
-### 1. Shop Service (`shop` module) — Port 8010
+## Shop Module (17 classes)
 
-**Role**: Frontend web application and API gateway. Serves the Thymeleaf-based UI and orchestrates calls to downstream services.
+| Class | Package | Responsibility |
+|-------|---------|---------------|
+| `JavaShopApp` | `shop` | Spring Boot app entry point, enables Hystrix, defines RestTemplate bean |
+| `HomeController` | `shop.controllers` | Main web controller: `/` (products+instruments page), `/score` (exercises), `/healthcheck` |
+| `User` | `shop.controllers` | POJO for user name and location |
+| `Exercises` | `shop` | Singleton managing 15 exercise validations, traces counter, `.env` file I/O |
+| `PropertiesUpdater` | `shop` | Singleton managing exercise scores via `shop.properties` |
+| `InvalidLocaleException` | `shop.exceptions` | Custom checked exception for locale validation |
+| `Instrument` | `shop.model` | Instrument model with builder methods and locale validation |
+| `Product` | `shop.model` | Product model with id, sku, name, description, price, amountAvailable |
+| `InstrumentRepo` | `shop.repo` | REST client for instruments service with Hystrix fallback |
+| `ProductRepo` | `shop.repo` | REST client for products/conductors services (Utah routing) |
+| `StockRepo` | `shop.repo` | REST client for stock service with Hystrix fallback |
+| `ProductResource` | `shop.resources` | REST controller `GET /products` delegating to ProductService |
+| `InstrumentService` | `shop.services` | Maps InstrumentDTOs to Instrument models with locale handling |
+| `ProductService` | `shop.services` | Merges product and stock DTOs into Product models |
+| `InstrumentDTO` | `shop.services.dto` | DTO for instrument data transfer from instruments service |
+| `ProductDTO` | `shop.services.dto` | DTO for product data transfer from products service |
+| `StockDTO` | `shop.services.dto` | DTO for stock data transfer with DEFAULT_STOCK_DTO |
 
-**Key Classes**:
-- `JavaShopApp` — Spring Boot application entry point, enables Hystrix, provides RestTemplate bean
-- `HomeController` — Main MVC controller handling `/`, `/score`, `/healthcheck` endpoints
-- `ProductResource` — REST controller at `/products` (proxies to ProductService)
-- `ProductService` — Aggregates product data from ProductRepo and stock data from StockRepo
-- `InstrumentService` — Retrieves instruments from InstrumentRepo with locale filtering
-- `ProductRepo` — HTTP client for products/conductors services with location-based routing
-- `StockRepo` — HTTP client for stock service with Hystrix fallback
-- `InstrumentRepo` — HTTP client for instruments service with Hystrix fallback
-- `Exercises` — Exercise scoring and validation system for APM training
-- `PropertiesUpdater` — File-based properties management for scores
-- `User` — Simple POJO for user name and location
+## Products Module (6 classes)
 
-**Spring Boot**: 1.5.19.RELEASE | **Java**: 1.8
+| Class | Package | Responsibility |
+|-------|---------|---------------|
+| `ProductServiceApplication` | `products` | Spring Boot entry point |
+| `ProductController` | `products.controllers` | `GET /products?location=` with filter pipeline |
+| `InvalidLocaleException` | `products.exceptions` | Custom checked exception |
+| `Product` | `products.model` | Product POJO with Jackson annotations |
+| `ProductFilterService` | `products.services` | Filter chain with deliberate Colorado latency injection |
+| `ProductService` | `products.services` | In-memory product DAO (5 hardcoded products) |
 
----
+## Conductors Module (7 classes)
 
-### 2. Products Service (`products` module) — Port 8020
+| Class | Package | Responsibility |
+|-------|---------|---------------|
+| `ConductorsServiceApplication` | `conductors` | Spring Boot entry point |
+| `ConductorsController` | `conductors.controllers` | `GET /conductors?location=` (hardcodes Oregon) |
+| `InvalidLocaleException` | `conductors.exceptions` | Custom checked exception |
+| `FilteredProducts` | `conductors.model` | Oregon locale filter (always throws exception) |
+| `Product` | `conductors.model` | Product POJO with Jackson annotations |
+| `ConductorsService` | `conductors.services` | In-memory product DAO (5 hardcoded products) |
+| `ProductFilterService` | `conductors.services` | Filter chain (all calls commented out) |
 
-**Role**: Product catalog service providing a list of available products with location-based filtering.
+## Instruments Module (11 classes)
 
-**Key Classes**:
-- `ProductServiceApplication` — Spring Boot entry point
-- `ProductController` — REST controller at `/products` with location parameter
-- `ProductService` — In-memory product DAO with hardcoded data (5 products)
-- `ProductFilterService` — Complex filtering pipeline with intentional latency (Thread.sleep patterns)
-- `Product` — Product model (id, name, description, price)
+| Class | Package | Responsibility |
+|-------|---------|---------------|
+| `InstrumentsApplication` | `instruments` | Spring Boot entry point, counts instruments on startup |
+| `InstrumentNotFoundException` | `instruments.exceptions` | Custom checked exception |
+| `InvalidLocaleException` | `instruments.exceptions` | Custom checked exception |
+| `FilteredInstrument` | `instruments.model` | Oregon locale filter (throws exception when Oregon) |
+| `Instrument` | `instruments.model` | JPA entity mapped to `instruments_for_sale` table |
+| `Stock` | `instruments.model` | JPA entity mapped to `InstrumentStocks` table |
+| `FindInstrumentRepository` | `instruments.repositories` | Custom repository interface |
+| `FindInstrumentRepositoryImpl` | `instruments.repositories` | Custom repo with native SQL + SQL injection vulnerability |
+| `InstrumentRepository` | `instruments.repositories` | JPA repository extending JpaRepository + FindInstrumentRepository |
+| `InstrumentStocksRepository` | `instruments.repositories` | CrudRepository for Stock entity |
+| `InstrumentResource` | `instruments.resources` | REST controller: `/instruments`, `/stocks`, `/healthcheck` |
+| `InstrumentService` | `instruments.services` | Location-based instrument retrieval with Chicago/Oregon special handling |
+| `InstrumentStocksService` | `instruments.services` | CRUD service for instrument stocks |
 
-**Spring Boot**: 3.2.2 | **Java**: 17
+## Stock Module (8 classes)
 
----
+| Class | Package | Responsibility |
+|-------|---------|---------------|
+| `StockManagerApplication` | `stock` | Spring Boot entry point |
+| `DataGenerator` | `stock.config` | Generates 5 synthetic stock records on startup |
+| `StockNotFoundException` | `stock.exceptions` | Custom checked exception |
+| `Stock` | `stock.model` | JPA entity (H2) with productId, sku, amountAvailable |
+| `InstrumentStocksRepository` | `stock.repositories` | CrudRepository for Stock |
+| `StockRepository` | `stock.repositories` | CrudRepository for Stock |
+| `StockResource` | `stock.resources` | REST controller: `/legacy`, `/insruments`, `/healthcheck` |
+| `InstrumentStocksService` | `stock.services` | CRUD service for instrument stocks |
+| `StockService` | `stock.services` | CRUD service for product stocks |
 
-### 3. Conductors Service (`conductors` module) — Port 8050
+## Annotator Module (4 classes)
 
-**Role**: Alternate product provider for Utah location. Mirrors products service but with Oregon-specific filtering logic.
+| Class | Package | Responsibility |
+|-------|---------|---------------|
+| `DirExplorer` | `annotator` | Recursive directory traversal with filter |
+| `DirExplorerInstrumented` | `annotator` | DirExplorer with OTel @WithSpan/@SpanAttribute annotations |
+| `OpenTelemetryAnnotator` | `annotator` | Main tool: parses Java files and adds OTel annotations |
+| `TestGeneratedInstrumentation` | `annotator` | Lists classes in a directory using JavaParser |
 
-**Key Classes**:
-- `ConductorsServiceApplication` — Spring Boot entry point
-- `ConductorsController` — REST controller at `/conductors` (hardcodes location to "Oregon")
-- `ConductorsService` — In-memory product DAO (same 5 products as ProductService)
-- `ProductFilterService` — Mirror of products' filter service (all filtering commented out)
-- `FilteredProducts` — Oregon locale validation (throws InvalidLocaleException if Oregon is disabled)
-- `Product` — Product model
+## Test Module (1 class)
 
-**Spring Boot**: 3.2.2 | **Java**: 17
-
----
-
-### 4. Stock Service (`stock` module) — Port 8030
-
-**Role**: Stock/inventory management service using H2 in-memory database.
-
-**Key Classes**:
-- `StockManagerApplication` — Spring Boot entry point
-- `StockResource` — REST controller with `/legacy`, `/insruments` (typo), `/healthcheck` endpoints
-- `StockService` — Retrieves all stock records via StockRepository
-- `InstrumentStocksService` — Retrieves instrument-specific stock records
-- `DataGenerator` — Generates 5 synthetic stock records on startup
-- `StockRepository` — Spring Data CrudRepository for Stock entity
-- `InstrumentStocksRepository` — Spring Data CrudRepository for Stock entity
-- `Stock` — JPA entity (productId, sku, amountAvailable)
-
-**Spring Boot**: 2.1.3.RELEASE | **Java**: 1.8
-
----
-
-### 5. Instruments Service (`instruments` module) — Port 8040
-
-**Role**: Musical instrument CRUD service backed by PostgreSQL database.
-
-**Key Classes**:
-- `InstrumentsApplication` — Spring Boot entry point with startup logging
-- `InstrumentResource` — REST controller with `/instruments`, `/stocks`, `/healthcheck` endpoints
-- `InstrumentService` — Business logic with location filtering (Chicago triggers Cartesian product query)
-- `InstrumentStocksService` — Retrieves instrument stock records
-- `InstrumentRepository` — JPA repository extending `JpaRepository` and `FindInstrumentRepository`
-- `FindInstrumentRepository` — Custom repository interface for native queries
-- `FindInstrumentRepositoryImpl` — Custom repository with SQL injection vulnerability
-- `Instrument` — JPA entity mapped to `instruments_for_sale` table
-- `Stock` — JPA entity mapped to `InstrumentStocks` table
-- `FilteredInstrument` — Oregon locale validation
-
-**Spring Boot**: 2.7.5 | **Java**: 17
-
----
-
-### 6. Annotator Tool (`annotator` module)
-
-**Role**: Standalone CLI tool that automatically adds OpenTelemetry `@WithSpan` and `@SpanAttribute` annotations to Java source files.
-
-**Key Classes**:
-- `OpenTelemetryAnnotator` — Main class that parses Java files using JavaParser and adds OTel annotations
-- `DirExplorer` — Recursive directory file walker
-- `DirExplorerInstrumented` — OTel-annotated version of DirExplorer (demonstrates annotation output)
-- `TestGeneratedInstrumentation` — Lists classes in a directory using JavaParser
-
-**Build tool**: Maven with exec-maven-plugin | **Java**: 17
-
----
-
-### 7. Test Module (`test` module)
-
-**Role**: Traffic generation for testing.
-
-**Key Classes**:
-- `GenerateTraffic` — Sends HTTP requests to shop service for load testing
+| Class | Package | Responsibility |
+|-------|---------|---------------|
+| `GenerateTraffic` | (default) | Sends HTTP traffic to shop at various locations for demo |
 
 ---
 
 ## Related Documents
 
-- [System Overview](system-overview.md) | [Dependencies](dependencies.md) | [Patterns](patterns.md)
-- [Program Structure](../reference/program-structure.md)
-
----
-
-[← Back to README](../README.md)
+- [System Overview](system-overview.md) — Architecture overview
+- [Dependencies](dependencies.md) — Dependency mapping
+- [Program Structure](../reference/program-structure.md) — Full class hierarchy

@@ -2,110 +2,112 @@
 
 # Error Handling
 
+[← Back to README](../README.md) | [Related: Business Logic](business-logic.md) | [Workflows](workflows.md) | [Decision Logic](decision-logic.md)
+
+## Overview
+
+This document catalogs all exception types, error handling patterns, and recovery mechanisms in the application.
+
+---
+
 ## Custom Exception Classes
 
-### InvalidLocaleException
-- **Defined in**: shop, products, conductors, instruments modules (each has its own copy)
-- **Extends**: `Exception`
-- **Usage**: Thrown when an unsupported locale (Oregon) is detected
-- **Constructors**: default, message, cause, message+cause, full (enableSuppression, writableStackTrace)
+| Exception | Module | Package | Extends | Usage |
+|-----------|--------|---------|---------|-------|
+| `InvalidLocaleException` | shop | `com.shabushabu.javashop.shop.exceptions` | `Exception` | Locale validation failures |
+| `InvalidLocaleException` | products | `com.shabushabu.javashop.products.exceptions` | `Exception` | Locale validation (unused) |
+| `InvalidLocaleException` | conductors | `com.shabushabu.javashop.conductors.exceptions` | `Exception` | Oregon locale disabled |
+| `InvalidLocaleException` | instruments | `com.shabushabu.javashop.instruments.exceptions` | `Exception` | Oregon locale disabled |
+| `InstrumentNotFoundException` | instruments | `com.shabushabu.javashop.instruments.exceptions` | `Exception` | Instrument not found (404) |
+| `StockNotFoundException` | stock | `com.shabushabu.javashop.stock.exceptions` | `Exception` | Stock not found (404) |
 
-### InstrumentNotFoundException
-- **Defined in**: `instruments/src/main/java/.../exceptions/InstrumentNotFoundException.java`
-- **Extends**: `Exception`
-- **Usage**: Thrown when an instrument is not found by ID
-- **Handler**: `InstrumentResource.handleInstrumentNotFound()` — returns HTTP 404 with empty body
-
-### StockNotFoundException
-- **Defined in**: `stock/src/main/java/.../exceptions/StockNotFoundException.java`
-- **Extends**: `Exception`
-- **Usage**: Thrown when stock is not found by productId
-- **Handler**: `StockResource.handleStockNotFound()` — returns HTTP 404 with empty body
-
-### NoPermissionException
-- **Defined in**: `javax.naming.NoPermissionException` (Java standard library)
-- **Usage**: Thrown by `HomeController.allParameters()` if user is restricted (currently never triggered)
+All custom exceptions follow the same pattern with constructors for: no-args, message, cause, message+cause. `InvalidLocaleException` in shop also has a 4-arg constructor with `enableSuppression` and `writableStackTrace`.
 
 ---
 
-## Hystrix Fallback Methods
+## Hystrix Circuit Breaker Fallbacks (Shop Module)
 
-### StockRepo Fallbacks (shop module)
-- **Method**: `stocksNotFound()`
-- **Triggered by**: `@HystrixCommand` on `getStockDTOs()` and `getInstrumentStockDTOs()`
-- **Behavior**: Logs "stocksNotFound *** FALLBACK ***", returns `Collections.emptyMap()`
-- **Impact**: Shop page renders without stock data (quantities show as default 999)
+| Method | Fallback Method | Behavior | Location |
+|--------|----------------|----------|----------|
+| `InstrumentRepo.getinstrumentDTOs()` | `instrumentsNotFound()` | Returns `Collections.emptyMap()` | `InstrumentRepo.java:35` |
+| `StockRepo.getStockDTOs()` | `stocksNotFound()` | Returns `Collections.emptyMap()` | `StockRepo.java:35` |
+| `StockRepo.getInstrumentStockDTOs()` | `stocksNotFound()` | Returns `Collections.emptyMap()` | `StockRepo.java:46` |
 
-### InstrumentRepo Fallback (shop module)
-- **Method**: `instrumentsNotFound()`
-- **Triggered by**: `@HystrixCommand` on `getinstrumentDTOs()`
-- **Behavior**: Logs "Instruments Empty NOT FOUND *** FALLBACK ***", returns `Collections.emptyMap()`
-- **Impact**: Shop page renders without instrument data
+Hystrix is enabled via `@EnableHystrix` on `JavaShopApp`.
 
 ---
 
-## Empty Catch Blocks (Anti-Pattern)
+## Exception Handler Annotations
 
-### ProductFilterService (products and conductors modules)
-- **Count**: 30+ empty catch blocks
-- **Pattern**: Every `myCoolFunction*()` method wraps `Thread.sleep()` in `try/catch` with empty catch body
-- **Example**: `catch (Exception e){ }` — no logging, no re-throwing
-- **Impact**: Any `InterruptedException` or other exceptions are silently swallowed
+| Controller | Exception Type | HTTP Status | Location |
+|------------|---------------|-------------|----------|
+| `InstrumentResource` | `InstrumentNotFoundException` | 404 NOT_FOUND | `InstrumentResource.java:56` |
+| `StockResource` | `StockNotFoundException` | 404 NOT_FOUND | `StockResource.java:50` |
 
-### ConductorsController
-- **Location**: `getProductsByLocation()` — line ~26
-- **Pattern**: `FilteredProducts.filterProducts("Oregon")` throws `InvalidLocaleException`, caught by empty catch
-- **Impact**: Oregon filter failure is silently ignored, products are served normally
-
-### InstrumentService (instruments module)
-- **Location**: `getInstruments()` — line ~35
-- **Pattern**: `filterInstruments(location)` exception caught, logs error but continues
-- **Behavior**: `s_logger.error("Locale Filter Failed on " + location)` — better than empty catch
-
-### InstrumentService (shop module)
-- **Location**: `getInstruments()` — line ~28
-- **Pattern**: `buildForLocale()` catches `InvalidLocaleException`, calls `e.printStackTrace()`, falls back to `buildIt()`
-- **Behavior**: Prints stack trace to stderr, builds instrument without title
+Both use `@ExceptionHandler` + `@ResponseStatus(HttpStatus.NOT_FOUND)` with void handler methods.
 
 ---
 
-## Exception Handler Methods
+## Try-Catch Patterns
 
-### InstrumentResource (instruments module)
-```java
-@ExceptionHandler
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public void handleInstrumentNotFound(InstrumentNotFoundException snfe) {}
-```
-- Returns HTTP 404 with empty body when `InstrumentNotFoundException` is thrown
+### Empty Catch Blocks (Anti-pattern)
 
-### StockResource (stock module)
-```java
-@ExceptionHandler
-@ResponseStatus(HttpStatus.NOT_FOUND)
-public void handleStockNotFound(StockNotFoundException snfe) {}
-```
-- Returns HTTP 404 with empty body when `StockNotFoundException` is thrown
+The codebase contains numerous empty catch blocks, primarily in `ProductFilterService` (both products and conductors modules):
+
+| Location | Pattern | Risk |
+|----------|---------|------|
+| `ProductFilterService` (products) — ~30+ occurrences | `try { Thread.sleep(x); } catch (Exception e) { }` | Silently swallows `InterruptedException`, loses thread interrupt status |
+| `ProductFilterService` (conductors) — ~30+ occurrences | `try { Thread.sleep(x); } catch (Exception e) { }` | Same as above |
+| `ConductorsController.getProductsByLocation()` | `try { products.filterProducts(location); } catch(Exception e) { }` | Silently swallows `InvalidLocaleException` — deliberately for Oregon locale |
+
+### Logged/Handled Catch Blocks
+
+| Location | Exception | Handling |
+|----------|-----------|----------|
+| `InstrumentService.getInstruments()` | `Exception` (from locale filter) | Logs error: "Locale Filter Failed on {location}" |
+| `InstrumentService (shop)` — `getInstruments()` lambda | `InvalidLocaleException` | Prints stack trace, falls back to `buildIt()` |
+| `Exercises` constructor | `IOException` | Logs "Failed to read properties file" |
+| `Exercises.checkExercise2()` | `IOException` (HTTP call) | Prints stack trace or returns false for 403 |
+| `PropertiesUpdater` constructor | `IOException` | Logs "Failed to read properties file" |
+| `PropertiesUpdater.storeTheScores()` | `IOException` | Logs "Failed to write properties file" |
+| `GenerateTraffic.main()` | `Exception` (HTTP calls) | Prints stack trace |
+
+### Permission Check
+
+| Location | Exception | Condition |
+|----------|-----------|-----------|
+| `HomeController.allParameters()` | `NoPermissionException` | When `checkIfRestricted(userid)` returns true (currently never) |
 
 ---
 
-## Error Recovery Patterns
+## Error Recovery Strategies
 
-| Component | Error Scenario | Recovery Strategy |
-|-----------|---------------|-------------------|
-| StockRepo | Stock service down | Hystrix fallback → empty map → default stock values |
-| InstrumentRepo | Instruments service down | Hystrix fallback → empty map → no instruments shown |
-| InstrumentService | Oregon locale | Catches exception → returns empty list |
-| InstrumentService (shop) | Non-English title | Catches exception → builds instrument without title |
-| ConductorsController | Oregon locale filter | Empty catch block → serves products normally |
-| ProductFilterService | Thread.sleep interrupted | Empty catch block → continues to next function |
-| HomeController | Restricted user | Throws NoPermissionException (currently never triggered) |
+| Strategy | Implementation | Module |
+|----------|---------------|--------|
+| **Circuit Breaker** | Hystrix `@HystrixCommand` with fallback methods returning empty collections | shop |
+| **Default Values** | `StockDTO.DEFAULT_STOCK_DTO` when stock not found for product | shop |
+| **Fallback Builder** | `Instrument.buildIt()` when `buildForLocale()` throws InvalidLocaleException | shop |
+| **Empty Collection** | Return empty list when locale filter returns false | instruments |
+| **Silent Swallow** | Empty catch blocks throughout filter services | products, conductors |
+| **Properties Fallback** | Return early/return true when properties file cannot be read | shop (Exercises) |
+
+---
+
+## Notable Error Handling Issues
+
+1. **Empty catch blocks**: ~60+ instances across ProductFilterService in both products and conductors modules. These silently swallow `InterruptedException`, which can cause thread interrupt status to be lost.
+
+2. **Overly broad exception catching**: Many catches use `Exception` instead of specific types (`InterruptedException`, `IOException`).
+
+3. **Conductor's Oregon exception**: `ConductorsController` hardcodes location to "Oregon", which always triggers `InvalidLocaleException` from `FilteredProducts`. This exception is silently caught — the controller still returns products despite the "error".
+
+4. **Null return in InstrumentService**: When Chicago query returns null or non-List, `getInstruments()` returns `null` instead of an empty list, which could cause `NullPointerException` downstream.
+
+---
 
 ## Related Documents
 
-- [Business Logic](business-logic.md) | [Workflows](workflows.md) | [Decision Logic](decision-logic.md)
-- [Analysis → Security Patterns](../analysis/security-patterns.md)
-
----
-
-[← Back to README](../README.md)
+- [Business Logic](business-logic.md) — Business rules that trigger exceptions
+- [Decision Logic](decision-logic.md) — Conditional branches around error handling
+- [Security Patterns](../analysis/security-patterns.md) — Security-related error handling
+- [Technical Debt Report](../technical-debt-report.md) — Error handling anti-patterns as tech debt
