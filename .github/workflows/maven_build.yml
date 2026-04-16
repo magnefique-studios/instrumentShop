@@ -28,7 +28,7 @@ jobs:
         distribution: 'temurin'
         cache: maven
     - name: Build with Maven
-      run: ./BuildOnly.sh
+      run: ./BuildAndDeploy.sh
     - name: Run Tests
       run: bash all_tests.sh || true
 # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
