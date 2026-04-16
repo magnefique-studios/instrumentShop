@@ -1,0 +1,26 @@
+# .github/workflows/cleanup-branches.yml
+name: Clean up closed PR branches
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Every Monday at 2am
+  workflow_dispatch:       # Also allow manual trigger
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Delete branches from closed unmerged PRs
+        run: |
+          gh pr list \
+            --repo ${{ github.repository }} \
+            --state closed \
+            --json headRefName,mergedAt \
+            --jq '.[] | select(.mergedAt == null) | .headRefName' | \
+          while read branch; do
+            echo "Deleting branch: $branch"
+            gh api repos/${{ github.repository }}/git/refs/heads/$branch \
+              -X DELETE || echo "Branch $branch already gone"
+          done
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
