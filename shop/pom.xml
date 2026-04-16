@@ -53,15 +53,19 @@
 			<version>${aspectj.version}</version>
 		</dependency>
 		
+		<!-- Security: log4j upgraded to 2.24.3 to remediate:
+		     CVE-2021-44228 (Log4Shell RCE, GHSA-jfh8-c2jp-5v3q, patched >= 2.12.2)
+		     CVE-2021-45046 (Incomplete Log4Shell fix, GHSA-7rjr-3q55-vv33, patched >= 2.12.2)
+		     CVE-2017-5645 (Deserialization RCE, GHSA-fxph-q3j8-mv87, patched >= 2.8.2) -->
 		<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     		<artifactId>log4j-api</artifactId>
-    		<version>2.6.1</version>
+    		<version>2.24.3</version>
 		</dependency>
 		<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     			<artifactId>log4j-core</artifactId>
-    			<version>2.6.1</version>
+    			<version>2.24.3</version>
 		</dependency>
 
 		<dependency>
