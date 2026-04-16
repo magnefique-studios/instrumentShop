@@ -5,6 +5,11 @@ on:
     branches: ["main"]
     types: [opened, synchronize]
 
+permissions:
+  id-token: write
+  contents: write
+  pull-requests: write
+
 jobs:
   build-and-test:
     runs-on: ubuntu-latest
@@ -53,11 +58,42 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Set up Node.js
+        if: steps.check_skip.outputs.skip != 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Set up Python
+        if: steps.check_skip.outputs.skip != 'true'
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Set up JDK 17
+        if: steps.check_skip.outputs.skip != 'true'
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Configure AWS credentials
+        if: steps.check_skip.outputs.skip != 'true'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: us-east-1
+
+      - name: Install AWS Transform CLI
+        if: steps.check_skip.outputs.skip != 'true'
+        run: curl -fsSL https://transform-cli.awsstatic.com/install.sh | bash
+
       - name: Generate documentation
         if: steps.check_skip.outputs.skip != 'true'
         run: |
-          # replace this with your actual doc generation command
-          run_code_analysis.sh
+          chmod +x run_code_analysis.sh
+          ./run_code_analysis.sh
 
       - name: Commit and push docs back to PR branch
         if: steps.check_skip.outputs.skip != 'true'
