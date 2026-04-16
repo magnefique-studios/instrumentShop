@@ -1,3 +1,8 @@
+
+echo "Waiting 45 seconds for services to start..."
+sleep 45
+
+
 #// 1 always true
     curl 'http://localhost:8010/score?exercise=1'
 #// 2 test ENV file edits 
