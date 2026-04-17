@@ -89,11 +89,23 @@ jobs:
         if: steps.check_skip.outputs.skip != 'true'
         run: curl -fsSL https://transform-cli.awsstatic.com/install.sh | bash
 
+      - name: Capture PR diff
+        if: steps.check_skip.outputs.skip != 'true'
+        id: pr_diff
+        run: |
+          DIFF=$(git diff HEAD~1 --stat)
+          echo "diff<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$DIFF" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+
       - name: Generate documentation
         if: steps.check_skip.outputs.skip != 'true'
         run: |
           chmod +x run_code_analysis.sh
-          ./run_code_analysis.sh
+          ./run_code_analysis.sh \
+            -N "${{ github.event.pull_request.title }}" \
+            -T "${{ github.event.pull_request.body }}" \
+            -D "${{ steps.pr_diff.outputs.diff }}"
 
       - name: Commit and push docs back to PR branch
         if: steps.check_skip.outputs.skip != 'true'
