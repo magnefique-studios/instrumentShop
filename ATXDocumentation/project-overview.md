@@ -49,7 +49,7 @@ The Java Instrument Shop is a web application that allows users to browse musica
 
 ### Critical Issues
 1. **3 modules on EOL Spring Boot versions** (1.5.x, 2.1.x, 2.7.x)
-2. **Log4j 2.6.1 vulnerability** (CVE-2021-44228 / Log4Shell)
+2. ~~**Log4j 2.6.1 vulnerability**~~ — ✅ **RESOLVED** (upgraded to 2.24.3, CVE-2021-44228, CVE-2021-45046, CVE-2017-5645 patched)
 3. **SQL injection** in instruments module
 4. **Deprecated Hystrix** circuit breaker (maintenance mode)
 
@@ -60,7 +60,7 @@ The Java Instrument Shop is a web application that allows users to browse musica
 - Significant code duplication between products and conductors modules
 
 ### AWS Transformation Recommendation
-See [Technical Debt Report](technical-debt-report.md) for recommended AWS-managed transformations: **AWS/java-version-upgrade** and **AWS/early-access-log4j-to-slf4j-migration**.
+See [Technical Debt Report](technical-debt-report.md) for recommended AWS-managed transformations: **AWS/java-version-upgrade**. The previously recommended `AWS/early-access-log4j-to-slf4j-migration` is no longer urgently needed since Log4j has been upgraded to 2.24.3, patching all critical CVEs.
 
 ## Related Documents
 

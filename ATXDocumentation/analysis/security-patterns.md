@@ -26,7 +26,7 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 
 ---
 
-### 2. Log4j 2.6.1 Vulnerability (Log4Shell) — Severity: Medium
+### 2. ~~Log4j 2.6.1 Vulnerability (Log4Shell)~~ — ✅ RESOLVED
 
 **File**: `shop/pom.xml`, lines ~31-37
 
@@ -34,13 +34,13 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 <dependency>
     <groupId>org.apache.logging.log4j</groupId>
     <artifactId>log4j-core</artifactId>
-    <version>2.6.1</version>
+    <version>2.24.3</version>
 </dependency>
 ```
 
-**Risk**: Log4j 2.6.1 is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105. These allow remote code execution through crafted log messages.
+**Status**: **RESOLVED** — Log4j upgraded from 2.6.1 to 2.24.3. CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2017-5645 are patched. No Java code changes were required (SLF4J used, not direct Log4j API).
 
-**Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
+**Previous Risk**: Log4j 2.6.1 was vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105, allowing remote code execution through crafted log messages.
 
 ---
 

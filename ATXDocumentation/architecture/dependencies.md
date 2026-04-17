@@ -34,8 +34,8 @@ stock (8030)
 | spring-cloud-starter-hystrix | (managed) | compile |
 | spring-cloud-starter-eureka | (managed) | compile |
 | aspectjweaver | 1.9.19 | compile |
-| log4j-api | 2.6.1 | compile |
-| log4j-core | 2.6.1 | compile |
+| log4j-api | 2.24.3 | compile |
+| log4j-core | 2.24.3 | compile |
 | opentelemetry-instrumentation-annotations | 1.19.2-alpha | compile |
 | nekohtml | 1.9.22 | compile |
 

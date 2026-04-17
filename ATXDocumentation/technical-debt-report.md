@@ -2,22 +2,22 @@
 
 ## 🎯 AWS Transformation Recommendation
 
-### **RECOMMENDED TRANSFORMATIONS: AWS/java-version-upgrade, AWS/early-access-log4j-to-slf4j-migration**
+### **RECOMMENDED TRANSFORMATIONS: AWS/java-version-upgrade**
 
-The `shop` module (Spring Boot 1.5.19 / Java 8) and `stock` module (Spring Boot 2.1.3 / Java 8) are running on end-of-life Spring Boot versions with Java 8 targets, and the `instruments` module (Spring Boot 2.7.5) is also approaching EOL. The **AWS/java-version-upgrade** transformation should be applied to each of these modules individually to upgrade to a modern JDK and Spring Boot version. Additionally, the `shop` module includes a direct dependency on **Log4j 2.6.1**, which is vulnerable to Log4Shell (CVE-2021-44228); the **AWS/early-access-log4j-to-slf4j-migration** transformation can address this critical security risk by migrating the logging framework.
+The `shop` module (Spring Boot 1.5.19 / Java 8) and `stock` module (Spring Boot 2.1.3 / Java 8) are running on end-of-life Spring Boot versions with Java 8 targets, and the `instruments` module (Spring Boot 2.7.5) is also approaching EOL. The **AWS/java-version-upgrade** transformation should be applied to each of these modules individually to upgrade to a modern JDK and Spring Boot version. Note: The previously critical Log4j vulnerability in the `shop` module has been resolved by upgrading log4j-api and log4j-core from 2.6.1 to 2.24.3, patching CVE-2021-44228, CVE-2021-45046, and CVE-2017-5645; the `AWS/early-access-log4j-to-slf4j-migration` transformation is no longer urgently needed for security remediation.
 
 ---
 
 ## Executive Summary
 
-This report presents the findings of a comprehensive technical debt analysis of the Java Instrument Shop multi-module Maven project. The application consists of 7 modules spanning **4 different Spring Boot versions** (1.5.x, 2.1.x, 2.7.x, 3.2.x) and **2 Java versions** (8 and 17). The most critical issues are end-of-life Spring Boot runtimes, a critically vulnerable Log4j dependency, a SQL injection vulnerability, and deprecated libraries (Hystrix, Cucumber `info.cukes`).
+This report presents the findings of a comprehensive technical debt analysis of the Java Instrument Shop multi-module Maven project. The application consists of 7 modules spanning **4 different Spring Boot versions** (1.5.x, 2.1.x, 2.7.x, 3.2.x) and **2 Java versions** (8 and 17). The most critical issues are end-of-life Spring Boot runtimes, a SQL injection vulnerability, and deprecated libraries (Hystrix, Cucumber `info.cukes`). The previously critical Log4j vulnerability (CVE-2021-44228, CVE-2021-45046, CVE-2017-5645) has been **remediated** by upgrading log4j-api and log4j-core from 2.6.1 to 2.24.3 in the `shop` module.
 
 ### Key Findings at a Glance
 
 | Severity | Count | Category |
 |----------|-------|----------|
 | **High** | 5 | EOL/deprecated runtimes and frameworks |
-| **Medium** | 6 | Outdated runtime/production dependencies and security issues |
+| **Medium** | 5 | Outdated runtime/production dependencies and security issues |
 | **Low** | 4 | Code quality, developer tooling, and architectural issues |
 
 ---
@@ -32,7 +32,7 @@ This report presents the findings of a comprehensive technical debt analysis of 
 
 ## Medium Severity Findings (Outdated Dependencies & Security)
 
-1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228)
+1. ~~**Log4j 2.6.1** — `shop` module — **RESOLVED**: upgraded to 2.24.3, CVE-2021-44228, CVE-2021-45046, CVE-2017-5645 patched~~
 2. **Spring Boot 2.7.5** — `instruments` module — approaching EOL
 3. **OpenTelemetry annotations 1.19.1-alpha / 1.19.2-alpha** — `annotator` and `instruments` modules — alpha pre-release versions
 4. **SQL Injection** — `instruments` module — `FindInstrumentRepositoryImpl.findInstrumentByID()` concatenates user input into HQL

@@ -20,7 +20,7 @@ The Java Instrument Shop codebase carries significant technical debt across mult
 
 | Component | Module | Current Version | Issue |
 |-----------|--------|----------------|-------|
-| Log4j | shop | 2.6.1 | Critical CVEs including Log4Shell |
+| Log4j | shop | ~~2.6.1~~ → 2.24.3 | ✅ **RESOLVED** — Upgraded, CVEs patched |
 | Spring Boot | instruments | 2.7.5 | Approaching EOL |
 | OTel annotations | annotator | 1.19.1-alpha | Pre-release alpha |
 | OTel annotations | instruments, shop | 1.19.2-alpha | Pre-release alpha |
@@ -43,7 +43,7 @@ The Java Instrument Shop codebase carries significant technical debt across mult
 
 ## Impact Assessment
 
-- **Security Risk**: The Log4j 2.6.1 dependency and SQL injection vulnerability pose immediate security concerns
+- **Security Risk**: The SQL injection vulnerability in the instruments module poses an immediate security concern. The previously critical Log4j 2.6.1 dependency has been **remediated** (upgraded to 2.24.3, patching CVE-2021-44228, CVE-2021-45046, and CVE-2017-5645)
 - **Operational Risk**: EOL Spring Boot versions receive no security patches or bug fixes
 - **Development Velocity**: Mixed framework versions require developers to maintain expertise across multiple Spring Boot generations
 - **Testing Complexity**: Different test frameworks (JUnit 3.8.1, Cucumber 1.2.5) make unified testing difficult

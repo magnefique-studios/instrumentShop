@@ -10,7 +10,7 @@
 | Spring Cloud | Dalston.SR5 | 2023.0.x+ | **High** | EOL, requires major migration |
 | spring-cloud-starter-hystrix | (Dalston managed) | N/A (removed) | **High** | Hystrix deprecated, replaced by Resilience4j |
 | spring-cloud-starter-eureka | (Dalston managed) | N/A (renamed) | **High** | Renamed to spring-cloud-starter-netflix-eureka-client |
-| Log4j (log4j-api, log4j-core) | 2.6.1 | 2.23.x+ | **Medium** | Vulnerable to Log4Shell CVE-2021-44228 and other critical CVEs |
+| Log4j (log4j-api, log4j-core) | ~~2.6.1~~ → 2.24.3 | 2.24.x+ | ✅ **Resolved** | Upgraded — CVE-2021-44228, CVE-2021-45046, CVE-2017-5645 patched |
 | AspectJ Weaver | 1.9.19 | 1.9.21+ | **Medium** | Moderately outdated |
 | OpenTelemetry annotations | 1.19.2-alpha | 2.x+ (stable) | **Medium** | Pre-release alpha version |
 | NekoHTML | 1.9.22 | 1.9.22 | Low | Final release, project archived |
