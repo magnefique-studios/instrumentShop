@@ -24,6 +24,8 @@ The Java Instrument Shop project carries a significant maintenance burden due to
 
 ## 2. Deprecated Library Dependencies — Severity: High
 
+> ✅ **Recent Improvement**: The `test` module's critical Log4j vulnerabilities (CVE-2021-44228, CVE-2021-45046, CVE-2017-5645) have been remediated by upgrading log4j-api and log4j-core from 2.6.1 to 2.24.3 in `test/pom.xml`. This reduces the number of modules with critically vulnerable Log4j dependencies from two (`shop` and `test`) to one (`shop` only).
+
 ### Netflix Hystrix (shop module)
 - Hystrix entered maintenance mode in 2018 and is no longer actively developed
 - No new features, security patches, or bug fixes

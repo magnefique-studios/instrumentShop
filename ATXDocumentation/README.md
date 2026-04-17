@@ -4,6 +4,8 @@
 
 This documentation provides a complete analysis of the **Java Instrument Shop**, a multi-module Spring Boot microservices application for managing musical instrument inventory. The analysis identified **significant technical debt** including 3 modules on end-of-life Spring Boot versions, a critical Log4j vulnerability, SQL injection, and deprecated libraries. See the [Technical Debt Report](technical-debt-report.md) for the AWS Transformation Recommendation and full findings.
 
+> **Recent Update**: The `test` module's critical Log4j vulnerabilities (CVE-2021-44228, CVE-2021-45046, CVE-2017-5645) have been **remediated** by upgrading log4j-api and log4j-core from 2.6.1 to 2.24.3 in `test/pom.xml`.
+
 ---
 
 ## 📋 Table of Contents

@@ -42,6 +42,8 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 
 **Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
 
+> ✅ **Partial Remediation**: The `test` module previously also used Log4j 2.6.1 but has been upgraded to **2.24.3** (`test/pom.xml`), resolving CVE-2021-44228, CVE-2021-45046, and CVE-2017-5645. The `shop` module's Log4j 2.6.1 remains vulnerable and is the outstanding open issue.
+
 ---
 
 ### 3. Cartesian Product Query — Severity: Low

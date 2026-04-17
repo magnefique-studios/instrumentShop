@@ -21,6 +21,7 @@ The Java Instrument Shop codebase carries significant technical debt across mult
 | Component | Module | Current Version | Issue |
 |-----------|--------|----------------|-------|
 | Log4j | shop | 2.6.1 | Critical CVEs including Log4Shell |
+| ~~Log4j~~ | ~~test~~ | ~~2.6.1~~ → 2.24.3 | ✅ **Resolved** — CVE-2021-44228, CVE-2021-45046, CVE-2017-5645 remediated |
 | Spring Boot | instruments | 2.7.5 | Approaching EOL |
 | OTel annotations | annotator | 1.19.1-alpha | Pre-release alpha |
 | OTel annotations | instruments, shop | 1.19.2-alpha | Pre-release alpha |
@@ -40,6 +41,17 @@ The Java Instrument Shop codebase carries significant technical debt across mult
 | Location hardcoded to "Oregon" | conductors | `ConductorsController.java` |
 | Public fields in model classes | shop | `Instrument.java` |
 | Mixed Spring Boot versions | all | 1.5.x, 2.1.x, 2.7.x, 3.2.x |
+
+## ✅ Recently Remediated
+
+### Log4j Vulnerability in `test` Module — Resolved
+
+The `test` module previously depended on log4j-api and log4j-core version 2.6.1, which were vulnerable to three critical CVEs:
+- **CVE-2021-44228** (Log4Shell) — Remote code injection via JNDI lookups in log messages
+- **CVE-2021-45046** — Incomplete fix for CVE-2021-44228, enabling RCE in certain configurations
+- **CVE-2017-5645** — Deserialization of untrusted data via TCP socket server
+
+Both dependencies were upgraded to **2.24.3** in `test/pom.xml`. No Java code changes were needed since `GenerateTraffic.java` does not import or use Log4j directly. The `shop` module's Log4j 2.6.1 remains an **open issue**.
 
 ## Impact Assessment
 

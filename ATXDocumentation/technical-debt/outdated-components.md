@@ -61,7 +61,18 @@
 | exec-maven-plugin | 3.1.0 | 3.2.x+ | Low | Moderately outdated |
 | Java target | 17 | 21+ | Low | Still supported |
 
-### 7. Root POM
+### 7. `test` Module (Traffic Generator)
+
+| Dependency | Current Version | Previous Version | Severity | Notes |
+|-----------|----------------|-----------------|----------|-------|
+| Log4j (log4j-api) | 2.24.3 | 2.6.1 | ✅ **Resolved** | Upgraded from 2.6.1 to 2.24.3 — CVE-2021-44228, CVE-2021-45046, CVE-2017-5645 remediated |
+| Log4j (log4j-core) | 2.24.3 | 2.6.1 | ✅ **Resolved** | Upgraded from 2.6.1 to 2.24.3 — CVE-2021-44228, CVE-2021-45046, CVE-2017-5645 remediated |
+| commons-httpclient | 3.1 | N/A | **Medium** | End-of-life since 2007; superseded by Apache HttpComponents HttpClient 4.x/5.x |
+| Java target | 11 | N/A | Low | Supported LTS version |
+
+> **PR Fix Applied**: Log4j dependencies in `test/pom.xml` were upgraded from 2.6.1 to 2.24.3 to resolve critical vulnerabilities CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2017-5645. No Java code changes were required as `GenerateTraffic.java` does not import or use Log4j directly.
+
+### 8. Root POM
 
 | Dependency | Current Version | Latest Stable | Severity | Notes |
 |-----------|----------------|---------------|----------|-------|

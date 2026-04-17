@@ -10,7 +10,9 @@ The `shop` module (Spring Boot 1.5.19 / Java 8) and `stock` module (Spring Boot 
 
 ## Executive Summary
 
-This report presents the findings of a comprehensive technical debt analysis of the Java Instrument Shop multi-module Maven project. The application consists of 7 modules spanning **4 different Spring Boot versions** (1.5.x, 2.1.x, 2.7.x, 3.2.x) and **2 Java versions** (8 and 17). The most critical issues are end-of-life Spring Boot runtimes, a critically vulnerable Log4j dependency, a SQL injection vulnerability, and deprecated libraries (Hystrix, Cucumber `info.cukes`).
+This report presents the findings of a comprehensive technical debt analysis of the Java Instrument Shop multi-module Maven project. The application consists of 7 modules spanning **4 different Spring Boot versions** (1.5.x, 2.1.x, 2.7.x, 3.2.x) and **2 Java versions** (8 and 17). The most critical issues are end-of-life Spring Boot runtimes, a critically vulnerable Log4j dependency in the `shop` module, a SQL injection vulnerability, and deprecated libraries (Hystrix, Cucumber `info.cukes`).
+
+> **Recent Update**: The `test` module's critical Log4j vulnerabilities (CVE-2021-44228, CVE-2021-45046, CVE-2017-5645) have been **remediated** by upgrading log4j-api and log4j-core from 2.6.1 to 2.24.3. The `shop` module's Log4j 2.6.1 remains an open issue.
 
 ### Key Findings at a Glance
 
@@ -32,7 +34,7 @@ This report presents the findings of a comprehensive technical debt analysis of 
 
 ## Medium Severity Findings (Outdated Dependencies & Security)
 
-1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228)
+1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228). *(Note: The `test` module's Log4j has been upgraded to 2.24.3 — see Recently Resolved Issues below.)*
 2. **Spring Boot 2.7.5** — `instruments` module — approaching EOL
 3. **OpenTelemetry annotations 1.19.1-alpha / 1.19.2-alpha** — `annotator` and `instruments` modules — alpha pre-release versions
 4. **SQL Injection** — `instruments` module — `FindInstrumentRepositoryImpl.findInstrumentByID()` concatenates user input into HQL
@@ -45,6 +47,24 @@ This report presents the findings of a comprehensive technical debt analysis of 
 2. **Cartesian product query** — `instruments` module `FindInstrumentRepositoryImpl.findInstruments()` — `SELECT * FROM instruments_for_sale, instruments_for_sale_chicago`
 3. **Endpoint typo** — `stock` module — `/insruments` instead of `/instruments`
 4. **Hardcoded location override** — `conductors` module — location always overridden to `"Oregon"`
+
+---
+
+## ✅ Recently Resolved Issues
+
+### Log4j Vulnerability Remediation in `test` Module — PR: Fix critical vulnerabilities CVE-2021-44228, CVE-2021-45046, CVE-2017-5645
+
+| Detail | Value |
+|--------|-------|
+| **Module** | `test` |
+| **File** | `test/pom.xml` |
+| **Previous Version** | log4j-api 2.6.1, log4j-core 2.6.1 |
+| **Patched Version** | log4j-api 2.24.3, log4j-core 2.24.3 |
+| **CVEs Resolved** | CVE-2021-44228 (Log4Shell, Critical), CVE-2021-45046 (Critical), CVE-2017-5645 (Critical) |
+| **Code Changes** | None required — `GenerateTraffic.java` does not import or use Log4j directly |
+| **Compatibility** | Test module uses Java 11 (`maven.compiler.source/target=11`); Log4j 2.24.3 is fully compatible |
+
+**Remaining open issue**: The `shop` module still uses Log4j 2.6.1 (`shop/pom.xml`) and remains vulnerable. See Medium Severity Finding #1 above.
 
 ---
 
