@@ -16,7 +16,7 @@ set -euo pipefail
 #   -U  (empty)             PR URL
 # -------------------------------------------------------------------
 
-TRANSFORMATION_NAME="AWS/comprehensive-codebase-analysis"
+TRANSFORMATION_NAME="GitHub-PR-Context-Codebase-Analysis"
 CODE_PATH="."
 BUILD_CMD="mvn clean install"
 PR_URL=""
