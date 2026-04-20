@@ -49,12 +49,51 @@ trap "rm -f $CONFIG_FILE" EXIT
 
 python3 -c "
 import json, sys
+
+pr_name = sys.argv[1]
+pr_text = sys.argv[2]
+solution_diff = sys.argv[3]
+additional = sys.argv[4]
+
+# Start building context
 ctx = 'Please limit the scope of documentation to this PR and related changes only!'
-ctx += ' PR_NAME: ' + sys.argv[1]
-ctx += ', PR_TEXT: ' + sys.argv[2]
-ctx += ', Solution_Diff: ' + sys.argv[3]
-if sys.argv[4]:
-    ctx += ' ' + sys.argv[4]
+ctx += ' PR_NAME: ' + pr_name
+ctx += ', PR_TEXT: ' + pr_text
+
+# Calculate remaining space for diff and additional context
+# Reserve 4000 chars total (leaving buffer below 4096 limit)
+MAX_TOTAL = 4000
+current_length = len(ctx)
+remaining = MAX_TOTAL - current_length
+
+# Reserve space for additional context if provided
+additional_length = len(additional) if additional else 0
+if additional_length > 0:
+    # Reserve space for additional context (max 500 chars)
+    additional_length = min(additional_length, 500)
+    remaining -= additional_length + 20  # +20 for formatting
+
+# Add as much of the diff as will fit
+if solution_diff and remaining > 50:  # Only add if we have meaningful space
+    diff_to_add = solution_diff[:remaining]
+    # Try to cut at a newline to avoid partial lines
+    last_newline = diff_to_add.rfind('\\n')
+    if last_newline > remaining * 0.8:  # If we can keep 80%+ of content
+        diff_to_add = diff_to_add[:last_newline]
+    
+    if len(solution_diff) > len(diff_to_add):
+        diff_to_add += '... (truncated)'
+    
+    ctx += ', Solution_Diff: ' + diff_to_add
+
+# Add additional context if provided
+if additional:
+    ctx += ' ' + additional[:500]
+
+# Final safety check
+if len(ctx) > MAX_TOTAL:
+    ctx = ctx[:MAX_TOTAL-3] + '...'
+
 with open(sys.argv[5], 'w') as f:
     json.dump({'additionalPlanContext': ctx}, f)
 " "$PR_NAME" "$PR_TEXT" "$SOLUTION_DIFF" "$ADDITIONAL_CONTEXT" "$CONFIG_FILE"
