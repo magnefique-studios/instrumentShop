@@ -13,15 +13,16 @@
 
 <dependencies>
 
+<!-- CVE-2021-44228 (GHSA-jfh8-c2jp-5v3q): Upgraded log4j from 2.6.1 to 2.24.3 (>= 2.15.0 patched). Log4Shell RCE resolved. -->
 <dependency>
     <groupId>org.apache.logging.log4j</groupId>
     <artifactId>log4j-api</artifactId>
-    <version>2.6.1</version>
+    <version>2.24.3</version>
 </dependency>
 <dependency>
     <groupId>org.apache.logging.log4j</groupId>
     <artifactId>log4j-core</artifactId>
-    <version>2.6.1</version>
+    <version>2.24.3</version>
 </dependency>
 
 <dependency>
