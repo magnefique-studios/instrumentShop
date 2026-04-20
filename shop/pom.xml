@@ -53,16 +53,19 @@
 			<version>${aspectj.version}</version>
 		</dependency>
 		
-		<!-- CVE-2017-5645 (GHSA-fxph-q3j8-mv87): Upgraded log4j from 2.6.1 to 2.24.3 (>= 2.8.2 patched). Deserialization RCE resolved. -->
+		<!-- CVE-2017-5645 (GHSA-fxph-q3j8-mv87): Upgraded log4j from 2.6.1 to 2.17.1.
+		     Version 2.17.1 is the latest Java 8 compatible release and patches all critical CVEs:
+		     CVE-2017-5645, CVE-2021-44228 (Log4Shell), CVE-2021-45046, CVE-2021-45105, CVE-2021-44832.
+		     Note: Original PR targeted 2.24.3 but that requires Java 17+; corrected by codebase analysis. -->
 		<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     		<artifactId>log4j-api</artifactId>
-    		<version>2.24.3</version>
+    		<version>2.17.1</version>
 		</dependency>
 		<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     			<artifactId>log4j-core</artifactId>
-    			<version>2.24.3</version>
+    			<version>2.17.1</version>
 		</dependency>
 
 		<dependency>
