@@ -53,15 +53,16 @@
 			<version>${aspectj.version}</version>
 		</dependency>
 		
+		<!-- CVE-2021-45046 (GHSA-7rjr-3q55-vv33): Upgraded log4j from 2.6.1 to 2.24.3 (>= 2.16.0 patched). Incomplete Log4j fix resolved. -->
 		<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     		<artifactId>log4j-api</artifactId>
-    		<version>2.6.1</version>
+    		<version>2.24.3</version>
 		</dependency>
 		<dependency>
     		<groupId>org.apache.logging.log4j</groupId>
     			<artifactId>log4j-core</artifactId>
-    			<version>2.6.1</version>
+    			<version>2.24.3</version>
 		</dependency>
 
 		<dependency>
