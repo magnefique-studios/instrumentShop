@@ -13,15 +13,16 @@
 
 <dependencies>
 
+<!-- CVE-2017-5645 (GHSA-fxph-q3j8-mv87): Upgraded log4j from 2.6.1 to 2.24.3 (>= 2.8.2 patched). Deserialization RCE resolved. -->
 <dependency>
     <groupId>org.apache.logging.log4j</groupId>
     <artifactId>log4j-api</artifactId>
-    <version>2.6.1</version>
+    <version>2.24.3</version>
 </dependency>
 <dependency>
     <groupId>org.apache.logging.log4j</groupId>
     <artifactId>log4j-core</artifactId>
-    <version>2.6.1</version>
+    <version>2.24.3</version>
 </dependency>
 
 <dependency>
