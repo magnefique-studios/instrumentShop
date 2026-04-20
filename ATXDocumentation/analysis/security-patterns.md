@@ -26,21 +26,19 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 
 ---
 
-### 2. Log4j 2.6.1 Vulnerability (Log4Shell) — Severity: Medium
+### 2. Log4j 2.6.1 Vulnerability — Severity: Medium → ✅ REMEDIATION IN PROGRESS
 
-**File**: `shop/pom.xml`, lines ~31-37
+**File**: `shop/pom.xml`, lines ~31-37; `test/pom.xml`, lines ~17-24
 
-```xml
-<dependency>
-    <groupId>org.apache.logging.log4j</groupId>
-    <artifactId>log4j-core</artifactId>
-    <version>2.6.1</version>
-</dependency>
-```
+**Previous State**: Log4j 2.6.1 — vulnerable to CVE-2017-5645 (Deserialization RCE, CVSS 9.8), CVE-2021-44228 (Log4Shell, CVSS 10.0), CVE-2021-45046, CVE-2021-45105, CVE-2021-44832.
 
-**Risk**: Log4j 2.6.1 is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105. These allow remote code execution through crafted log messages.
+**Remediation**: [PR #25](https://github.com/magnefique-studios/instrumentShop/pull/25) upgrades `log4j-api` and `log4j-core` from 2.6.1 to 2.24.3 in both `shop/pom.xml` and `test/pom.xml`.
 
-**Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
+**⚠️ Compatibility Warning**: Log4j 2.24.3 requires Java 17+. The `shop` module targets Java 8 and the `test` module targets Java 11. This version may cause compilation/runtime failures. Consider using Log4j 2.17.1 (last Java 8 compatible release that patches all critical CVEs) instead. See [PR #25 Analysis](pr-25-cve-2017-5645-analysis.md) for full details.
+
+**Additional Finding — Missing Log4j Dependencies**:
+- `products/src/main/java/.../services/ProductFilterService.java` imports `org.apache.logging.log4j.LogManager` and `Logger` but `products/pom.xml` has no Log4j dependency declared.
+- `conductors/src/main/java/.../services/ProductFilterService.java` imports `org.apache.logging.log4j.LogManager` and `Logger` but `conductors/pom.xml` has no Log4j dependency declared.
 
 ---
 
@@ -63,7 +61,7 @@ entityManager.createNativeQuery("SELECT * FROM instruments_for_sale, instruments
 **File**: `shop/src/main/java/.../controllers/HomeController.java`, line ~100 (commented out)
 
 ```java
-// URL url = new URL("https://mofi2flod5cpeismodr7eonuiu0gkoli.lambda-url.us-west-1.on.aws/?userId=" + userId);
+// URL url = new URL("https://example.lambda-url.us-west-1.on.aws/?userId=" + userId);
 ```
 
 **Risk**: If uncommented, this would make HTTP calls to a hardcoded external AWS Lambda URL with user IDs. The URL may no longer be controlled by the project maintainers.
@@ -106,6 +104,7 @@ public static long s_utahLatency;
 ## Related Documents
 
 - [Technical Debt Report](../technical-debt-report.md)
+- [PR #25 CVE-2017-5645 Analysis](pr-25-cve-2017-5645-analysis.md)
 - [Code Metrics](code-metrics.md) | [Dependency Analysis](dependency-analysis.md)
 
 ---
