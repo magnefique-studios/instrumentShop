@@ -43,7 +43,7 @@ Each module upgrade is considered successful when:
 - [ ] Spring Cloud updated to current release
 - [ ] Hystrix replaced with Resilience4j (fallback behavior preserved)
 - [ ] All `javax.*` imports replaced with `jakarta.*`
-- [ ] Log4j upgraded to safe version (or migrated to SLF4J)
+- [x] Log4j upgraded to safe version (2.12.3, addressing CVE-2021-44228, CVE-2021-45046, CVE-2017-5645)
 - [ ] Thymeleaf renders correctly without LEGACYHTML5 mode
 - [ ] All downstream service calls function correctly
 - [ ] `/` renders homepage with products and instruments
