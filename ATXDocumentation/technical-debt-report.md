@@ -4,7 +4,7 @@
 
 ### **RECOMMENDED TRANSFORMATIONS: AWS/java-version-upgrade, AWS/early-access-log4j-to-slf4j-migration**
 
-The `shop` module (Spring Boot 1.5.19 / Java 8) and `stock` module (Spring Boot 2.1.3 / Java 8) are running on end-of-life Spring Boot versions with Java 8 targets, and the `instruments` module (Spring Boot 2.7.5) is also approaching EOL. The **AWS/java-version-upgrade** transformation should be applied to each of these modules individually to upgrade to a modern JDK and Spring Boot version. Additionally, the `shop` module includes a direct dependency on **Log4j 2.6.1**, which is vulnerable to Log4Shell (CVE-2021-44228); the **AWS/early-access-log4j-to-slf4j-migration** transformation can address this critical security risk by migrating the logging framework.
+The `shop` module (Spring Boot 1.5.19 / Java 8) and `stock` module (Spring Boot 2.1.3 / Java 8) are running on end-of-life Spring Boot versions with Java 8 targets, and the `instruments` module (Spring Boot 2.7.5) is also approaching EOL. The **AWS/java-version-upgrade** transformation should be applied to each of these modules individually to upgrade to a modern JDK and Spring Boot version. Additionally, the `shop` module includes a direct dependency on **Log4j 2.6.1**, which is vulnerable to Log4Shell (CVE-2021-44228); the **AWS/early-access-log4j-to-slf4j-migration** transformation can address this critical security risk by migrating the logging framework. *(Note: The `test` module's Log4j 2.6.1 has already been upgraded to 2.24.3 per PR #27.)*
 
 ---
 
@@ -32,7 +32,7 @@ This report presents the findings of a comprehensive technical debt analysis of 
 
 ## Medium Severity Findings (Outdated Dependencies & Security)
 
-1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228)
+1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228). *Note: The `test` module previously also used Log4j 2.6.1 but has been upgraded to 2.24.3 per PR #27, remediating CVE-2021-44228, CVE-2021-45046, and CVE-2017-5645 in that module.*
 2. **Spring Boot 2.7.5** — `instruments` module — approaching EOL
 3. **OpenTelemetry annotations 1.19.1-alpha / 1.19.2-alpha** — `annotator` and `instruments` modules — alpha pre-release versions
 4. **SQL Injection** — `instruments` module — `FindInstrumentRepositoryImpl.findInstrumentByID()` concatenates user input into HQL

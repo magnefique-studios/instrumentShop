@@ -15,6 +15,8 @@ Issues are prioritized by severity and impact. No time estimates are provided â€
 - **Risk if deferred**: Active exploitation of Log4Shell CVE-2021-44228
 - **AWS Transformation**: Use `AWS/early-access-log4j-to-slf4j-migration` to migrate to SLF4J
 
+> **Note**: The `test` module previously also used Log4j 2.6.1 but has been **upgraded to 2.24.3** per [PR #27](https://github.com/magnefique-studios/instrumentShop/pull/27), remediating CVE-2021-44228, CVE-2021-45046, and CVE-2017-5645 in that module. The `shop` module's Log4j 2.6.1 remediation remains outstanding.
+
 #### 1.2 Fix SQL injection in `instruments` module
 - **File**: `FindInstrumentRepositoryImpl.findInstrumentByID()`
 - **Current**: `"FROM instruments i WHERE i.ID = " + id.toString()`

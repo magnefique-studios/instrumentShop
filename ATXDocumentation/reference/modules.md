@@ -12,7 +12,7 @@ The project uses a multi-module Maven POM structure. The root POM at `pom.xml` d
 | instruments | javashop.instruments | jar | 2.7.5 | 17 |
 | conductors | javashop.conductors | jar | 3.2.2 | 17 |
 | annotator | annotator | jar | N/A | 17 |
-| test | (traffic generator) | — | N/A | — |
+| test | javashop.tester | jar | N/A | 11 |
 
 ## Inter-Module Dependencies
 
@@ -26,7 +26,7 @@ There are **no compile-time Maven dependencies between modules**. All inter-serv
 - **stock**: Stock/inventory management (H2 in-memory DB)
 - **instruments**: Musical instrument data (PostgreSQL)
 - **annotator**: Developer tool for OTel annotation
-- **test**: Traffic generation for load testing
+- **test**: Traffic generation for load testing (Java 11, log4j 2.24.3, commons-httpclient 3.1)
 
 ## Related Documents
 

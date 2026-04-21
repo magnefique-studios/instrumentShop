@@ -42,6 +42,10 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 
 **Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
 
+**Affected Modules**:
+- **`shop`** — Still uses Log4j 2.6.1 (log4j-api and log4j-core). **Remains vulnerable.**
+- **`test`** — ✅ **Remediated** (PR #27). Previously used Log4j 2.6.1; upgraded to **2.24.3**, which resolves CVE-2021-44228, CVE-2021-45046, and CVE-2017-5645.
+
 ---
 
 ### 3. Cartesian Product Query — Severity: Low
@@ -102,6 +106,12 @@ public static long s_utahLatency;
 | Input Validation | Minimal (no `@Valid`, no request validation) | All services |
 | CORS | Not configured | All services |
 | Authentication | Not implemented | All services |
+
+## Remediation History
+
+| Date | Module | Issue | Action | PR |
+|------|--------|-------|--------|----|
+| 2026-04-20 | test | Log4j 2.6.1 (CVE-2021-44228, CVE-2021-45046, CVE-2017-5645) | Upgraded log4j-api and log4j-core to 2.24.3 | [#27](https://github.com/magnefique-studios/instrumentShop/pull/27) |
 
 ## Related Documents
 
