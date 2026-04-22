@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 import com.shabushabu.javashop.products.services.ProductFilterService;
 import com.shabushabu.javashop.products.services.ProductService;
@@ -31,6 +33,13 @@ public class ProductController {
     	ProductFilterService serviceFilter = new ProductFilterService();
     	
         return serviceFilter.filterAllProducts(location, service);
+    }
+
+    @GetMapping("/products/{id}")
+    public Product getProductById(@PathVariable String id) {
+        ProductService service = new ProductService();
+        return service.getProduct(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + id));
     }
     
     @RequestMapping("products/healthcheck")
