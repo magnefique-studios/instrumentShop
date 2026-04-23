@@ -1,0 +1,64 @@
+# Remediate-Critical-GitHub-Dependabot-Alerts-Java-Maven
+
+## Objective
+
+Automatically remediate critical GitHub Dependabot security alerts for a Java Maven application by querying the repository's Dependabot alerts, analyzing each critical vulnerability, and creating individual pull requests with the required fixes, which may include Maven dependency version upgrades, transitive dependency management, or application code changes to maintain compatibility.
+
+## Summary
+
+This transformation queries the GitHub Dependabot alerts API to retrieve all open alerts with critical severity for the target repository. For each critical alert, it identifies the vulnerable dependency in the Maven pom.xml files, determines the recommended safe version, applies the necessary dependency version upgrade, performs any required code changes to maintain compatibility with the updated library, validates the fix compiles and tests pass using mvn clean install, and creates a pull request with a clear description of the vulnerability and the applied remediation.
+
+## Inputs
+
+1. GitHub Repository: The full repository identifier in the format owner/repo-name (e.g., my-org/my-java-app). This specifies the GitHub repository to scan for Dependabot alerts. The repository must be provided as an environment variable named GITHUB_REPOSITORY. For example: export GITHUB_REPOSITORY="my-org/my-java-app".
+2. GitHub Token: A GitHub personal access token (classic) or fine-grained token with the following permissions: read access to Dependabot alerts (security_events scope), write access to repository contents (to create branches and push commits), and write access to pull requests. The token must be provided as an environment variable named GITHUB_TOKEN. For example: export GITHUB_TOKEN="ghp_xxxxxxxxxxxxxxxxxxxx". Do not hardcode the token in any file or script. Always use the environment variable to keep credentials secure.
+
+## Entry Criteria
+
+1. The target repository is hosted on GitHub and has Dependabot alerts enabled.
+2. The application is a Java project using Maven as the build system with one or more pom.xml files.
+3. The repository has at least one open Dependabot alert with critical severity.
+4. GitHub API access is available with sufficient permissions to read Dependabot alerts, create branches, push commits, and open pull requests.
+5. The project can be built successfully using the command mvn clean install before any changes are applied.
+6. The GITHUB_REPOSITORY environment variable is set to the target repository in owner/repo-name format.
+7. The GITHUB_TOKEN environment variable is set to a valid GitHub token with the required permissions (security_events read, contents write, pull requests write).
+
+## Implementation Steps
+
+1. Authenticate with the GitHub API using the token provided via the GITHUB_TOKEN environment variable, ensuring permissions to read Dependabot alerts and create pull requests on the target repository.
+2. Query the GitHub Dependabot alerts API endpoint for the repository specified by the GITHUB_REPOSITORY environment variable, filtering for alerts with critical severity that are in an open state.
+3. For each critical Dependabot alert, extract the following information: the vulnerable package name, the affected version range, the recommended patched version, the CVE identifier, and the advisory summary.
+4. Locate all pom.xml files in the repository (parent and module pom files) that declare or manage the vulnerable dependency, including direct dependencies and dependency management sections.
+5. Determine the remediation strategy for each alert:
+   a. If the vulnerability can be fixed by upgrading the dependency version, identify the minimum safe version recommended by the advisory.
+   b. If the vulnerable dependency is a transitive dependency, determine whether to add an explicit dependency management entry or exclude and replace the transitive dependency.
+   c. If the upgrade introduces breaking API changes, identify the code modifications required for compatibility.
+6. Create a new Git branch from the default branch with a descriptive name following the pattern: dependabot-fix/CVE-YYYY-NNNNN-package-name.
+7. Update the pom.xml file(s) to apply the version upgrade:
+   a. For direct dependencies, update the version element in the dependency declaration or the corresponding property if version is managed via a property.
+   b. For transitive dependencies, add or update an entry in the dependencyManagement section to enforce the safe version.
+   c. If multiple pom.xml files are involved (multi-module project), ensure consistency across all module pom files.
+8. If the dependency upgrade introduces breaking API changes, apply the necessary code modifications:
+   a. Update import statements if package names have changed.
+   b. Modify method calls if method signatures have changed or methods have been deprecated and removed.
+   c. Update configuration files if the library's configuration format has changed.
+9. Run the build command mvn clean install to verify the changes compile successfully and all existing tests pass.
+10. If the build fails after the dependency upgrade:
+    a. Analyze the build errors to determine if additional code changes are needed.
+    b. Apply corrective code changes and re-run mvn clean install until the build succeeds.
+    c. If the build cannot be fixed automatically, document the issue in the PR description and flag it for manual review.
+11. Commit all changes to the feature branch with a clear commit message referencing the CVE and describing the fix applied.
+12. Push the branch to the remote repository and create a pull request with the following details:
+    a. Title: Fix critical vulnerability CVE-YYYY-NNNNN in package-name.
+    b. Description: Include the vulnerability summary, the affected version, the patched version, a summary of changes made, and a link to the GitHub advisory.
+    c. Label the PR appropriately (e.g., security, dependabot, critical).
+13. Repeat steps 3 through 12 for each remaining critical Dependabot alert.
+
+## Validation / Exit Criteria
+
+1. All open critical Dependabot alerts for the repository have been processed and a corresponding pull request has been created for each.
+2. Each pull request contains the correct dependency version upgrade in the relevant pom.xml file(s) and any necessary code changes for compatibility.
+3. The build command mvn clean install passes successfully on each feature branch before the pull request is created.
+4. Each pull request has a descriptive title and body that references the specific CVE and explains the remediation applied.
+5. No new compilation errors or test failures are introduced by the changes in any pull request.
+6. For any alerts that could not be automatically remediated, a pull request is still created with documentation of the issue and a clear flag for manual review.
