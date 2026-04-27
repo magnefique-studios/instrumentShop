@@ -35,6 +35,13 @@ Returns filtered product list for a given location.
 - **Response**: `List<Product>` as JSON (5 hardcoded products: Widget, Sprocket, Anvil, Cogs, Multitool)
 - **Behavior**: Passes through `ProductFilterService.filterAllProducts()` which adds artificial latency for Colorado
 
+#### `GET /products/{id}`
+Returns a single product by its ID.
+- **Parameters**: `id` (required, path variable) — the product identifier
+- **Response**: `Product` as JSON (single product object with id, name, description, price)
+- **Behavior**: Instantiates a new `ProductService` and calls `getProduct(id)`. If the product exists in the in-memory DAO, returns it. If not found, throws `ResponseStatusException` with HTTP 404 and message 'Product not found: {id}'.
+- **Error**: HTTP 404 (Not Found) if the product ID does not match any of the 5 hardcoded products (IDs 1-5)
+
 #### `GET /products/healthcheck`
 - **Response**: `"HTTP Status OK (CODE 200)"` with HTTP 200
 

@@ -61,6 +61,16 @@
 - **Source**: `ProductService` constructor (line ~12, `products/src/main/java/.../services/ProductService.java`)
 - 5 hardcoded products: Widget ($1.20), Sprocket ($4.10), Anvil ($45.50), Cogs ($1.80), Multitool ($154.10)
 
+### Single Product Lookup by ID
+- **Source**: `ProductController.getProductById()` (line ~37, `products/src/main/java/.../controllers/ProductController.java`)
+- Accepts a product ID as a `@PathVariable` in the URL path (`/products/{id}`)
+- Creates a new `ProductService` instance (which initializes 5 hardcoded products)
+- Calls `productService.getProduct(id)` which returns `Optional<Product>` from the in-memory HashMap
+- If found: returns the Product directly (no filtering pipeline, no latency injection)
+- If not found: throws `ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: {id}")`
+- Valid IDs: "1" (Widget), "2" (Sprocket), "3" (Anvil), "4" (Cogs), "5" (Multitool)
+- **Note**: Unlike `getProductsByLocation()`, this endpoint does NOT go through `ProductFilterService` and has no intentional latency bugs
+
 ---
 
 ## Conductors Module — ConductorsController

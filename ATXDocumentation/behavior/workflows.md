@@ -37,6 +37,20 @@
 
 ---
 
+## Workflow 2b: Single Product Retrieval by ID (Products Service)
+
+**Entry Point**: `ProductController.getProductById()` — `GET /products/{id}`
+
+1. Product ID received as a path variable from the URL
+2. `ProductService` instantiated (creates 5 hardcoded products in memory)
+3. `productService.getProduct(id)` called — looks up product by ID in the in-memory HashMap
+4. If product exists (Optional is present) → returns the `Product` object as JSON
+5. If product does not exist (Optional is empty) → throws `ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + id)`
+
+This is a simple direct lookup with no filtering pipeline — unlike the location-based GET /products endpoint, this bypasses the ProductFilterService entirely.
+
+---
+
 ## Workflow 3: Conductor Product Processing (Conductors Service)
 
 **Entry Point**: `ConductorsController.getProductsByLocation()` — `GET /conductors`

@@ -65,6 +65,25 @@ sequenceDiagram
     S-->>U: HTML page (slow response)
 ```
 
+## Single Product Retrieval by ID (Products Service)
+
+```mermaid
+sequenceDiagram
+    participant C as Client
+    participant P as Products :8020
+
+    C->>P: GET /products/{id}
+    P->>P: new ProductService() [creates in-memory DAO]
+    P->>P: productService.getProduct(id)
+    alt Product found (id in 1-5)
+        P-->>C: HTTP 200 — Product JSON
+    else Product not found
+        P-->>C: HTTP 404 — "Product not found: {id}"
+    end
+```
+
+Note: This is a direct lookup flow with no downstream service calls, no filtering pipeline, and no intentional latency. The Products service handles the entire request internally using its in-memory HashMap.
+
 ## Instrument Retrieval Flow (Standard)
 
 ```mermaid

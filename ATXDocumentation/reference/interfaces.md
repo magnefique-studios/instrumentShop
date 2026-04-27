@@ -16,6 +16,7 @@
 | Method | Path | Parameters | Returns | Controller |
 |--------|------|-----------|---------|------------|
 | GET | `/products` | `location` (required) | `List<Product>` | `ProductController` |
+| GET | `/products/{id}` | `id` (required, path variable) | `Product` | `ProductController` |
 | GET | `/products/healthcheck` | — | `String` (HTTP 200) | `ProductController` |
 
 ### Conductors Service (port 8050)
@@ -80,6 +81,17 @@ public List<Stock> getInstrumentStocks()
 // FindInstrumentRepository (interface)
 Object findInstruments()
 Instrument findInstrumentByID(String id)
+```
+
+### Products Module
+
+```java
+// ProductController
+public Product getProductById(@PathVariable String id)
+
+// ProductService
+public List<Product> getAllProducts()
+public Optional<Product> getProduct(String id)
 ```
 
 ### Stock Module

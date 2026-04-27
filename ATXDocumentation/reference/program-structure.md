@@ -49,7 +49,7 @@ shop/
 products/
 ├── ProductServiceApplication            [@SpringBootApplication]
 ├── controllers/
-│   └── ProductController                [@RestController - /products]
+│   └── ProductController                [@RestController - /products, /products/{id}]
 ├── exceptions/
 │   └── InvalidLocaleException           [extends Exception]
 ├── model/

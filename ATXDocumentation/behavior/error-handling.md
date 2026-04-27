@@ -89,6 +89,15 @@ public void handleStockNotFound(StockNotFoundException snfe) {}
 
 ---
 
+### ResponseStatusException Usage (Products Module)
+- **Location**: `ProductController.getProductById()` — `products/src/main/java/.../controllers/ProductController.java`, line ~40
+- **Type**: `org.springframework.web.server.ResponseStatusException` with `HttpStatus.NOT_FOUND`
+- **Message**: `"Product not found: " + id`
+- **Behavior**: Spring Boot automatically translates this into an HTTP 404 response with the error message in the response body. Unlike the empty `@ExceptionHandler` methods in instruments and stock modules, this approach uses Spring's built-in exception-to-HTTP-status mapping.
+- **Note**: This is the first use of `ResponseStatusException` in the codebase — other modules use custom `@ExceptionHandler` methods with empty bodies or empty catch blocks.
+
+---
+
 ## Error Recovery Patterns
 
 | Component | Error Scenario | Recovery Strategy |
@@ -100,6 +109,7 @@ public void handleStockNotFound(StockNotFoundException snfe) {}
 | ConductorsController | Oregon locale filter | Empty catch block → serves products normally |
 | ProductFilterService | Thread.sleep interrupted | Empty catch block → continues to next function |
 | HomeController | Restricted user | Throws NoPermissionException (currently never triggered) |
+| ProductController | Product ID not found | Throws ResponseStatusException → HTTP 404 with error message |
 
 ## Related Documents
 

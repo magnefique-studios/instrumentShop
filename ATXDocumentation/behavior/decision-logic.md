@@ -146,6 +146,24 @@ IF stockDTO == null (no matching stock for product)
   THEN → use DEFAULT_STOCK_DTO (sku="default", amountAvailable=999)
 ```
 
+---
+
+## Decision Point 11: Single Product Lookup (Products Module)
+
+**Location**: `ProductController.getProductById()` — `products/src/main/java/.../controllers/ProductController.java`, line ~37
+
+```
+CALL productService.getProduct(id)
+IF Optional.isPresent()
+  THEN → return Product as JSON (HTTP 200)
+ELSE
+  THEN → throw ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + id)
+```
+
+- Valid product IDs: "1" through "5"
+- Any other ID returns HTTP 404
+- No location-based routing or filtering is applied
+
 ## Related Documents
 
 - [Business Logic](business-logic.md) | [Workflows](workflows.md) | [Error Handling](error-handling.md)
