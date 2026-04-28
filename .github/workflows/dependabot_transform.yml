@@ -52,7 +52,7 @@ jobs:
             -n "${TRANSFORMATION_NAME}" \
             -c "${BUILD_COMMAND}"
         env:
-          TRANSFORMATION_NAME: ${{ inputs.transformation_name || 'Remediate-Critical-GitHub-Dependabot-Alerts-Java-Maven' }}
+          TRANSFORMATION_NAME: ${{ inputs.transformation_name || 'TD-GitHub-PR-Context-Codebase-Analysis' }}
           BUILD_COMMAND: ${{ inputs.build_command || 'mvn clean install' }}
 
       - name: Run Dependabot alert fixes
