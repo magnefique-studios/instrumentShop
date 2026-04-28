@@ -1,6 +1,8 @@
 name: Dependabot Fix with AWS Transform
 
 on:
+  schedule:
+    - cron: '0 3 * * *'  # Every night at 3am UTC
   workflow_dispatch:
     inputs:
       transformation_name:
@@ -34,7 +36,7 @@ jobs:
         with:
           python-version: "3.12"
 
-      # AWS auth via OIDC — no long-lived keys
+      # AWS auth via OIDC - no long-lived keys
       - uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
@@ -47,12 +49,23 @@ jobs:
         run: |
           chmod +x run_code_analysis.sh
           ./run_code_analysis.sh \
-            -n "${{ inputs.transformation_name }}" \
-            -c "${{ inputs.build_command }}"
+            -n "${TRANSFORMATION_NAME}" \
+            -c "${BUILD_COMMAND}"
+        env:
+          TRANSFORMATION_NAME: ${{ inputs.transformation_name || 'Remediate-Critical-GitHub-Dependabot-Alerts-Java-Maven' }}
+          BUILD_COMMAND: ${{ inputs.build_command || 'mvn clean install' }}
 
-      - name: Fetch alerts and create fix PRs
+      - name: Run Dependabot alert fixes
+        run: |
+          chmod +x run_dependabot_alert_fixes.sh
+          ./run_dependabot_alert_fixes.sh
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          pip install requests
-          python dependabot_alerts.py
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      # - name: Fetch alerts and create fix PRs
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   run: |
+      #     pip install requests
+      #     python dependabot_alerts.py
