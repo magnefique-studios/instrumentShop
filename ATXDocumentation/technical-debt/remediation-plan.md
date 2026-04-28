@@ -8,12 +8,12 @@ Issues are prioritized by severity and impact. No time estimates are provided �
 
 ### Priority 1: Critical Security Fixes — Severity: High
 
-#### 1.1 Upgrade Log4j 2.6.1 in `shop` module
-- **Current**: Log4j 2.6.1 (log4j-api, log4j-core)
-- **Target**: Latest Log4j 2.x or migrate to SLF4J/Logback
+#### 1.1 ~~Upgrade Log4j 2.6.1 in `shop` module~~ — ✅ COMPLETED
+- **Previous**: Log4j 2.6.1 (log4j-api, log4j-core)
+- **Current**: Log4j 2.17.1 (upgraded via [PR #31](https://github.com/magnefique-studios/instrumentShop/pull/31) — CVE-2017-5645 remediation)
+- **Target**: Latest Log4j 2.x or migrate to SLF4J/Logback (optional further improvement)
 - **Effort**: Low complexity — dependency version update, verify logging configuration
-- **Risk if deferred**: Active exploitation of Log4Shell CVE-2021-44228
-- **AWS Transformation**: Use `AWS/early-access-log4j-to-slf4j-migration` to migrate to SLF4J
+- **Status**: ✅ Critical CVEs (Log4Shell CVE-2021-44228, CVE-2017-5645) remediated. Full SLF4J migration via `AWS/early-access-log4j-to-slf4j-migration` still recommended as optional enhancement.
 
 #### 1.2 Fix SQL injection in `instruments` module
 - **File**: `FindInstrumentRepositoryImpl.findInstrumentByID()`

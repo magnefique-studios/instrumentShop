@@ -8,7 +8,7 @@ This document provides a cross-reference summary of all technical debt findings.
 |----------|-------|-----------------|
 | EOL Runtimes & Frameworks | 5 | **High** |
 | Outdated Dependencies | 6 | **Medium** |
-| Security Vulnerabilities | 2 | **Medium** |
+| Security Vulnerabilities | 2 (1 remediated) | **Medium** |
 | Code Quality Issues | 7 | **Low** |
 | **Total** | **20** | — |
 
@@ -23,7 +23,7 @@ This document provides a cross-reference summary of all technical debt findings.
 ## Top 5 Critical Items
 
 1. **Spring Boot 1.5.19 EOL** (shop) — High — No security patches since 2019
-2. **Log4j 2.6.1** (shop) — Medium — Vulnerable to Log4Shell RCE
+2. ~~**Log4j 2.6.1**~~ (shop) — ✅ **Remediated** — Upgraded to 2.17.1, Log4Shell CVEs resolved
 3. **Spring Boot 2.1.3 EOL** (stock) — High — No security patches since 2019
 4. **SQL Injection** (instruments) — Medium — Unsanitized query parameter
 5. **Spring Cloud Dalston EOL** (shop) — High — Blocks framework upgrades
