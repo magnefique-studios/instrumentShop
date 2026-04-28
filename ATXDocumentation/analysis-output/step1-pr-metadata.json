@@ -1,0 +1,17 @@
+{
+  "pr_url": "https://github.com/magnefique-studios/instrumentShop/pull/30",
+  "owner": "magnefique-studios",
+  "repo": "instrumentShop",
+  "pull_number": 30,
+  "title": "Fix critical vulnerability CVE-2021-45046 in log4j-core (shop module)",
+  "state": "open",
+  "head_ref": "dependabot-fix/CVE-2021-45046-log4j-core-shop",
+  "head_sha": "25022a96ef798c4bb80cd6a1d464a87082ac3d5b",
+  "base_ref": "main",
+  "base_sha": "b38e860e3bed99afe3653e9bbedbeb3f09cea6ba",
+  "changed_files": 1,
+  "additions": 2,
+  "deletions": 2,
+  "body": "## Security Vulnerability Remediation\n\n**CVE:** CVE-2021-45046\n**GHSA:** GHSA-7rjr-3q55-vv33\n**Severity:** Critical\n**Package:** org.apache.logging.log4j:log4j-core\n**Affected Version:** 2.6.1\n**Patched Version:** 2.17.1\n**Manifest:** shop/pom.xml\n\n### Summary\nIncomplete fix for Apache Log4j vulnerability. It was found that the fix to address CVE-2021-44228 in Apache Log4j 2.15.0 was incomplete in certain non-default configurations. This could allow attackers to craft malicious input data using a JNDI Lookup pattern.\n\n### Changes Made\n- Updated `org.apache.logging.log4j:log4j-api` from 2.6.1 to 2.17.1 in `shop/pom.xml`\n- Updated `org.apache.logging.log4j:log4j-core` from 2.6.1 to 2.17.1 in `shop/pom.xml`\n\nNo application code changes were required as the shop module uses SLF4J for logging.\n\n### Advisory\n- NVD: https://nvd.nist.gov/vuln/detail/CVE-2021-45046\n- GitHub Advisory: https://github.com/advisories/GHSA-7rjr-3q55-vv33\n\n### Build Verification\n`mvn clean install` passed successfully with no compilation errors or test failures.",
+  "diff": "diff --git a/shop/pom.xml b/shop/pom.xml\nindex afc990d..edcb73f 100644\n--- a/shop/pom.xml\n+++ b/shop/pom.xml\n@@ -56,12 +56,12 @@\n \t\t<dependency>\n     \t\t<groupId>org.apache.logging.log4j</groupId>\n     \t\t<artifactId>log4j-api</artifactId>\n-    \t\t<version>2.6.1</version>\n+    \t\t<version>2.17.1</version>\n \t\t</dependency>\n \t\t<dependency>\n     \t\t<groupId>org.apache.logging.log4j</groupId>\n     \t\t\t<artifactId>log4j-core</artifactId>\n-    \t\t\t<version>2.6.1</version>\n+    \t\t\t<version>2.17.1</version>\n \t\t</dependency>\n"
+}

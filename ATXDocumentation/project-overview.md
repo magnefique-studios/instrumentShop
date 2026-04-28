@@ -49,7 +49,7 @@ The Java Instrument Shop is a web application that allows users to browse musica
 
 ### Critical Issues
 1. **3 modules on EOL Spring Boot versions** (1.5.x, 2.1.x, 2.7.x)
-2. **Log4j 2.6.1 vulnerability** (CVE-2021-44228 / Log4Shell)
+2. **Log4j 2.6.1 vulnerability** (CVE-2021-44228 / Log4Shell) — ✅ **Partially remediated**: shop module upgraded to 2.17.1 via [PR #30](https://github.com/magnefique-studios/instrumentShop/pull/30); test module still at 2.6.1
 3. **SQL injection** in instruments module
 4. **Deprecated Hystrix** circuit breaker (maintenance mode)
 

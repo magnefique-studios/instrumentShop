@@ -58,7 +58,7 @@ Modules should be upgraded in order of increasing complexity and dependency coun
    - Update fallback method patterns
 5. Migrate `javax.*` → `jakarta.*` namespace
 6. Update Thymeleaf configuration (remove LEGACYHTML5 mode, remove NekoHTML)
-7. Upgrade Log4j 2.6.1 to latest (or migrate to SLF4J)
+7. ~~Upgrade Log4j 2.6.1 to latest (or migrate to SLF4J)~~ ✅ Done — upgraded to Log4j 2.17.1 via [PR #30](https://github.com/magnefique-studios/instrumentShop/pull/30)
 8. Update AspectJ and OpenTelemetry annotations
 9. Verify RestTemplate compatibility for all downstream calls
 10. Test all endpoints and inter-service communication

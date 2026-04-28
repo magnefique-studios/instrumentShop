@@ -26,21 +26,31 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 
 ---
 
-### 2. Log4j 2.6.1 Vulnerability (Log4Shell) — Severity: Medium
+### 2. Log4j Vulnerability (Log4Shell) — Severity: Medium — ✅ Partially Remediated
 
 **File**: `shop/pom.xml`, lines ~31-37
 
+**Previous (before [PR #30](https://github.com/magnefique-studios/instrumentShop/pull/30))**:
 ```xml
 <dependency>
     <groupId>org.apache.logging.log4j</groupId>
     <artifactId>log4j-core</artifactId>
-    <version>2.6.1</version>
+    <version>2.6.1</version>  <!-- WAS vulnerable -->
 </dependency>
 ```
 
-**Risk**: Log4j 2.6.1 is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105. These allow remote code execution through crafted log messages.
+**Current (shop module)**:
+```xml
+<dependency>
+    <groupId>org.apache.logging.log4j</groupId>
+    <artifactId>log4j-core</artifactId>
+    <version>2.17.1</version>  <!-- Remediated -->
+</dependency>
+```
 
-**Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
+**Risk**: ~~Log4j 2.6.1 is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105. These allow remote code execution through crafted log messages.~~ The `shop` module has been upgraded to Log4j 2.17.1, which remediates CVE-2021-44228, CVE-2021-45046, and CVE-2021-45105. **However**, the `test` module (`test/pom.xml`) still uses Log4j 2.6.1 and remains vulnerable.
+
+**Fix**: ~~Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.~~ Shop module: ✅ Done (2.17.1). Test module: Still needs upgrade to Log4j 2.17.1+.
 
 ---
 

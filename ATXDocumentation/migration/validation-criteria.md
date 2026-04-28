@@ -43,7 +43,7 @@ Each module upgrade is considered successful when:
 - [ ] Spring Cloud updated to current release
 - [ ] Hystrix replaced with Resilience4j (fallback behavior preserved)
 - [ ] All `javax.*` imports replaced with `jakarta.*`
-- [ ] Log4j upgraded to safe version (or migrated to SLF4J)
+- [x] Log4j upgraded to safe version (or migrated to SLF4J) — ✅ Upgraded to 2.17.1 via [PR #30](https://github.com/magnefique-studios/instrumentShop/pull/30)
 - [ ] Thymeleaf renders correctly without LEGACYHTML5 mode
 - [ ] All downstream service calls function correctly
 - [ ] `/` renders homepage with products and instruments
