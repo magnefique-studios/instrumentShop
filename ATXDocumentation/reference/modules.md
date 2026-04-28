@@ -12,7 +12,7 @@ The project uses a multi-module Maven POM structure. The root POM at `pom.xml` d
 | instruments | javashop.instruments | jar | 2.7.5 | 17 |
 | conductors | javashop.conductors | jar | 3.2.2 | 17 |
 | annotator | annotator | jar | N/A | 17 |
-| test | (traffic generator) | — | N/A | — |
+| test | javashop.tester | jar | N/A | 11 |
 
 ## Inter-Module Dependencies
 

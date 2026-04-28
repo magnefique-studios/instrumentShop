@@ -42,6 +42,8 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 
 **Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
 
+**Partial Remediation (PR #33):** The `test` module also had Log4j 2.6.1 (log4j-api and log4j-core) as direct dependencies in `test/pom.xml`. These have been upgraded to **2.17.1** to remediate CVE-2021-45046 (GHSA-7rjr-3q55-vv33). The `shop` module's Log4j 2.6.1 remains vulnerable and still requires remediation. The test module uses `System.out`/`System.err` rather than Log4j API directly, so the dependency was only a transitive exposure risk.
+
 ---
 
 ### 3. Cartesian Product Query — Severity: Low

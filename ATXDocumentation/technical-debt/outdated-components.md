@@ -61,7 +61,18 @@
 | exec-maven-plugin | 3.1.0 | 3.2.x+ | Low | Moderately outdated |
 | Java target | 17 | 21+ | Low | Still supported |
 
-### 7. Root POM
+### 7. `test` Module
+
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| Log4j (log4j-api) | 2.17.1 | 2.23.x+ | Low | ✅ Patched for CVE-2021-45046 and CVE-2021-44228 (upgraded from 2.6.1 via PR #33) |
+| Log4j (log4j-core) | 2.17.1 | 2.23.x+ | Low | ✅ Patched for CVE-2021-45046 and CVE-2021-44228 (upgraded from 2.6.1 via PR #33) |
+| commons-httpclient | 3.1 | N/A (EOL) | **Medium** | Project is EOL — replaced by Apache HttpComponents HttpClient 4.x/5.x |
+| Java target | 11 | 21+ | Low | Supported LTS, but not latest |
+
+> **PR #33 Remediation:** The test module's log4j-api and log4j-core were upgraded from 2.6.1 to 2.17.1 to remediate CVE-2021-45046 (GHSA-7rjr-3q55-vv33). The commons-httpclient 3.1 dependency remains and is an EOL library that should be migrated to Apache HttpComponents.
+
+### 8. Root POM
 
 | Dependency | Current Version | Latest Stable | Severity | Notes |
 |-----------|----------------|---------------|----------|-------|

@@ -32,7 +32,7 @@ This report presents the findings of a comprehensive technical debt analysis of 
 
 ## Medium Severity Findings (Outdated Dependencies & Security)
 
-1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228)
+1. **Log4j 2.6.1** — `shop` module — critically outdated, vulnerable to Log4Shell (CVE-2021-44228). *Note: The `test` module previously had Log4j 2.6.1 but has been remediated to 2.17.1 via PR #33 (CVE-2021-45046 fix).*
 2. **Spring Boot 2.7.5** — `instruments` module — approaching EOL
 3. **OpenTelemetry annotations 1.19.1-alpha / 1.19.2-alpha** — `annotator` and `instruments` modules — alpha pre-release versions
 4. **SQL Injection** — `instruments` module — `FindInstrumentRepositoryImpl.findInstrumentByID()` concatenates user input into HQL

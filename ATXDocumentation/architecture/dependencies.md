@@ -88,6 +88,15 @@ stock (8030)
 | opentelemetry-instrumentation-annotations | 1.19.1-alpha | compile |
 | exec-maven-plugin | 3.1.0 | build |
 
+### test
+| Dependency | Version | Scope |
+|-----------|---------|-------|
+| log4j-api | 2.17.1 | compile |
+| log4j-core | 2.17.1 | compile |
+| commons-httpclient | 3.1 | compile |
+
+> **Note (PR #33):** The test module's log4j-api and log4j-core dependencies were upgraded from 2.6.1 to 2.17.1 to remediate CVE-2021-45046 (GHSA-7rjr-3q55-vv33). The commons-httpclient 3.1 dependency remains and is EOL.
+
 ### root POM
 | Dependency | Version | Scope |
 |-----------|---------|-------|
