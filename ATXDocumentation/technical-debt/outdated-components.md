@@ -67,6 +67,14 @@
 |-----------|----------------|---------------|----------|-------|
 | JUnit | 3.8.1 | 5.10.x+ (JUnit 5) | **Medium** | Extremely outdated, 3 major versions behind |
 
+### 8. `test` Module (Recently Remediated)
+
+| Dependency | Current Version | Latest Stable | Severity | Notes |
+|-----------|----------------|---------------|----------|-------|
+| Log4j (log4j-api, log4j-core) | 2.17.1 | 2.23.x+ | Low | **Upgraded from 2.6.1 to 2.17.1 via [PR #34](https://github.com/magnefique-studios/instrumentShop/pull/34)** to remediate CVE-2017-5645. Version 2.17.1 addresses all known critical Log4j CVEs. Further upgrade to 2.23.x is optional. |
+| commons-httpclient | 3.1 | N/A (EOL) | **Medium** | Apache Commons HttpClient 3.1 is end-of-life. Replaced by Apache HttpComponents HttpClient 4.x/5.x. |
+| Java target | 11 | 21+ | Low | Still supported LTS |
+
 ## javax → Jakarta Namespace Migration
 
 The `shop` (Spring Boot 1.5.x), `stock` (Spring Boot 2.1.x), and `instruments` (Spring Boot 2.7.x) modules all use the `javax.*` namespace for persistence, validation, and annotations. Spring Boot 3.x requires the `jakarta.*` namespace. This is a mandatory migration step when upgrading to Spring Boot 3.x.

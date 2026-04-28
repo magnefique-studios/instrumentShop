@@ -1,0 +1,103 @@
+{
+  "pr_context": {
+    "url": "https://github.com/magnefique-studios/instrumentShop/pull/34",
+    "title": "Fix critical vulnerability CVE-2017-5645 in log4j-core (test module)",
+    "body": "Upgrade org.apache.logging.log4j:log4j-core and org.apache.logging.log4j:log4j-api from version 2.6.1 to 2.17.1 to remediate CVE-2017-5645 (Deserialization of Untrusted Data). Advisory: https://nvd.nist.gov/vuln/detail/CVE-2017-5645 GHSA: GHSA-fxph-q3j8-mv87",
+    "branch": "dependabot-fix/CVE-2017-5645-log4j-core-test",
+    "head_sha": "4e926cefc03a260b8bb0f3b253de35ba1d1f1057",
+    "diff_summary": "test/pom.xml: log4j-api 2.6.1 -> 2.17.1, log4j-core 2.6.1 -> 2.17.1"
+  },
+  "build_status": "BUILD SUCCESS (all 8 modules passed)",
+  "analysis_scope": "Documentation updates to reflect log4j 2.6.1 -> 2.17.1 upgrade in test module",
+  "files_requiring_changes": [
+    {
+      "file": "ATXDocumentation/analysis/dependency-analysis.md",
+      "changes": [
+        {
+          "section": "Runtime Dependencies table",
+          "issue": "Test module (shoptester) is completely absent from all dependency tables. The table has columns for shop, stock, instruments, products, conductors, annotator but NOT test.",
+          "action": "Add 'test' column to all three dependency tables (Framework, Runtime, Test). In the Runtime table, add a checkmark for Log4j 2.17.1 in the test column."
+        },
+        {
+          "section": "Dependency Health Assessment",
+          "issue": "Log4j 2.6.1 is listed as Outdated. After this PR, Log4j 2.17.1 in test module should be listed as Current/Acceptable. The Log4j 2.6.1 in shop remains outdated.",
+          "action": "Update the Outdated row to clarify 'Log4j 2.6.1 (shop module only)' and add 'Log4j 2.17.1 (test module)' to Current/Acceptable examples."
+        }
+      ]
+    },
+    {
+      "file": "ATXDocumentation/analysis/security-patterns.md",
+      "changes": [
+        {
+          "section": "Section 2: Log4j 2.6.1 Vulnerability (Log4Shell)",
+          "issue": "Only references shop/pom.xml. The test module previously had the same vulnerability (log4j 2.6.1) which is now remediated.",
+          "action": "Update to clarify this vulnerability now only affects the shop module. Add a note that the test module previously had log4j 2.6.1 but was remediated to 2.17.1 via PR #34."
+        }
+      ]
+    },
+    {
+      "file": "ATXDocumentation/architecture/dependencies.md",
+      "changes": [
+        {
+          "section": "External Library Dependencies by Module",
+          "issue": "No 'test' module section exists. The test module has log4j-api 2.17.1, log4j-core 2.17.1, and commons-httpclient 3.1.",
+          "action": "Add a new '### test' section with a dependency table listing the 3 dependencies."
+        }
+      ]
+    },
+    {
+      "file": "ATXDocumentation/technical-debt/outdated-components.md",
+      "changes": [
+        {
+          "section": "Module-by-Module Dependency Assessment",
+          "issue": "No section for the test module. The test module's log4j has been upgraded from 2.6.1 to 2.17.1.",
+          "action": "Add a new '### 8. test Module (Recently Remediated)' section noting the log4j upgrade and the remaining commons-httpclient 3.1 which is outdated."
+        }
+      ]
+    },
+    {
+      "file": "ATXDocumentation/technical-debt/summary.md",
+      "changes": [
+        {
+          "section": "Section 2: Outdated Runtime/Production Dependencies",
+          "issue": "Log4j row says 'shop' module with version 2.6.1. Does not mention that the test module previously had the same issue, now remediated.",
+          "action": "Update Log4j row to clarify 'shop (only — test module remediated to 2.17.1)' and update the Impact Assessment."
+        }
+      ]
+    },
+    {
+      "file": "ATXDocumentation/technical-debt-report.md",
+      "changes": [
+        {
+          "section": "Medium Severity Findings - Item 1 (Log4j 2.6.1)",
+          "issue": "States 'shop module' only. Does not mention the test module's previous vulnerability or its remediation.",
+          "action": "Update to clarify 'shop module (only — test module remediated to 2.17.1 via PR #34)'. Also update the Executive Summary and AWS Transformation Recommendation sections."
+        }
+      ]
+    },
+    {
+      "file": "ATXDocumentation/technical-debt/remediation-plan.md",
+      "changes": [
+        {
+          "section": "Priority 1.1: Upgrade Log4j 2.6.1",
+          "issue": "Only references the shop module. The test module had the same issue but has been fixed by this PR.",
+          "action": "Add a note under Priority 1.1 that the test module's log4j has already been remediated from 2.6.1 to 2.17.1. The remaining action is for the shop module only."
+        }
+      ]
+    },
+    {
+      "file": "ATXDocumentation/project-overview.md",
+      "changes": [
+        {
+          "section": "Key Findings - Critical Issues item 2",
+          "issue": "Says 'Log4j 2.6.1 vulnerability (CVE-2021-44228 / Log4Shell)' without module qualification. Now only the shop module is affected.",
+          "action": "Update to 'Log4j 2.6.1 vulnerability in shop module (CVE-2021-44228 / Log4Shell) — test module remediated to 2.17.1'"
+        }
+      ]
+    }
+  ],
+  "additional_observation": {
+    "file": "ATXDocumentation/reference/modules.md",
+    "note": "The test module row shows 'Spring Boot: N/A, Java: —'. This is accurate since the test module does not use Spring Boot. No changes needed for this PR."
+  }
+}

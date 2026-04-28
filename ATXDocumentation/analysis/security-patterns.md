@@ -38,9 +38,11 @@ entityManager.createQuery("FROM Instrument i WHERE i.id = :id")
 </dependency>
 ```
 
-**Risk**: Log4j 2.6.1 is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, and CVE-2021-45105. These allow remote code execution through crafted log messages.
+**Affected Module**: `shop` (only — the `test` module previously had log4j 2.6.1 but was **remediated to 2.17.1** via [PR #34](https://github.com/magnefique-studios/instrumentShop/pull/34), fixing CVE-2017-5645)
 
-**Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback.
+**Risk**: Log4j 2.6.1 in the `shop` module is vulnerable to CVE-2021-44228 (Log4Shell), CVE-2021-45046, CVE-2021-45105, and CVE-2017-5645 (Deserialization of Untrusted Data). These allow remote code execution through crafted log messages.
+
+**Fix**: Upgrade to Log4j 2.17.1+ or migrate to SLF4J/Logback (as already done in the test module).
 
 ---
 
