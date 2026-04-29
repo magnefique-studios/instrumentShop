@@ -29,7 +29,7 @@
 
 **Key Classes**:
 - `ProductServiceApplication` — Spring Boot entry point
-- `ProductController` — REST controller at `/products` with location parameter
+- `ProductController` — REST controller at `/products` (list by location) and `/products/{id}` (get by ID)
 - `ProductService` — In-memory product DAO with hardcoded data (5 products)
 - `ProductFilterService` — Complex filtering pipeline with intentional latency (Thread.sleep patterns)
 - `Product` — Product model (id, name, description, price)

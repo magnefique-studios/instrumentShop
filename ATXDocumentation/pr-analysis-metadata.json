@@ -1,0 +1,19 @@
+{
+  "pr_url": "https://github.com/magnefique-studios/instrumentShop/pull/35",
+  "owner": "magnefique-studios",
+  "repo": "instrumentShop",
+  "pull_number": 35,
+  "title": "Feature/get product by ID",
+  "body": "Feature/get product by ID",
+  "state": "open",
+  "head_ref": "feature/get-product-by-id",
+  "head_sha": "0e6affc8550236d03024108c1e088b1ef8a95ec3",
+  "base_ref": "main",
+  "base_sha": "4997329586737ca36d45e158b07c6d7e36766d4c",
+  "changed_files": 1,
+  "additions": 12,
+  "deletions": 1,
+  "diff_summary": "Changes to products/src/main/java/com/shabushabu/javashop/products/controllers/ProductController.java: Adds a new @GetMapping('/products/{id}') endpoint that retrieves a product by ID using ProductService.getProduct(id) and throws ResponseStatusException(NOT_FOUND) if not found. The healthCheck() method was reordered to appear before the new endpoint.",
+  "created_at": "2026-04-29T22:01:34Z",
+  "author": "renukakrishnan"
+}

@@ -16,6 +16,7 @@
 | Method | Path | Parameters | Returns | Controller |
 |--------|------|-----------|---------|------------|
 | GET | `/products` | `location` (required) | `List<Product>` | `ProductController` |
+| GET | `/products/{id}` | `id` (path var, required) | `Product` | `ProductController` |
 | GET | `/products/healthcheck` | — | `String` (HTTP 200) | `ProductController` |
 
 ### Conductors Service (port 8050)
@@ -66,6 +67,16 @@ public Map<String, StockDTO> getStockDTOs()                                    /
 public Map<String, StockDTO> getInstrumentStockDTOs()                          // StockRepo (@HystrixCommand)
 public Map<Long, InstrumentDTO> getinstrumentDTOs()                            // InstrumentRepo (@HystrixCommand)
 public Map<Long, InstrumentDTO> getinstrumentsByLocation(String location)      // InstrumentRepo
+```
+
+### Products Module
+
+```java
+// ProductController
+public Product getProductById(@PathVariable String id)
+
+// ProductService
+public Optional<Product> getProduct(String id)
 ```
 
 ### Instruments Module

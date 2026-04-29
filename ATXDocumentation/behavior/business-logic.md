@@ -48,6 +48,16 @@
 
 ---
 
+## Products Module
+
+### Product Retrieval by ID
+- **Source**: `ProductController.getProductById()` (line ~47, `products/src/main/java/.../controllers/ProductController.java`)
+- Creates a new `ProductService` instance per request
+- Calls `ProductService.getProduct(id)` which returns `Optional<Product>` by looking up from in-memory `HashMap`
+- If product found (valid IDs: "1" through "5"), returns the `Product` directly as JSON
+- If product not found, throws `ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + id)`
+- Product lookup is by String ID against in-memory HashMap (keys: "1" = Widget, "2" = Sprocket, "3" = Anvil, "4" = Cogs, "5" = Multitool)
+
 ## Products Module — ProductFilterService
 
 ### Product Filtering Pipeline
