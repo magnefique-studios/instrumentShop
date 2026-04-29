@@ -52,6 +52,7 @@ This transformation queries the GitHub Dependabot alerts API to retrieve all ope
     a. Title: Fix critical vulnerability CVE-YYYY-NNNNN in package-name.
     b. Description: Include the vulnerability summary, the affected version, the patched version, a summary of changes made, and a link to the GitHub advisory.
     c. Label the PR appropriately (e.g., security, dependabot, critical).
+    Do not approve or merge the created pull request.
 13. Repeat steps 3 through 12 for each remaining critical Dependabot alert.
 
 ## Validation / Exit Criteria
