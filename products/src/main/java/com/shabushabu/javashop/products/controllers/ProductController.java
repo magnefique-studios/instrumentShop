@@ -35,17 +35,19 @@ public class ProductController {
         return serviceFilter.filterAllProducts(location, service);
     }
 
+
+    
+    @RequestMapping("products/healthcheck")
+    @ResponseStatus(code = HttpStatus.OK, reason = "OK")
+    public String healthCheck() {
+        return "HTTP Status OK (CODE 200)\n";
+    } 
+
     @GetMapping("/products/{id}")
     public Product getProductById(@PathVariable String id) {
         ProductService service = new ProductService();
         return service.getProduct(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Product not found: " + id));
     }
-    
-    @RequestMapping("products/healthcheck")
-    @ResponseStatus(code = HttpStatus.OK, reason = "OK")
-    public String healthCheck() {
-        return "HTTP Status OK (CODE 200)\n";
-    }    
 }
 
